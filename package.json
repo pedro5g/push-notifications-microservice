@@ -1,0 +1,47 @@
+{
+  "name": "push-notifications-microservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "rm -rf ./dist && tsc && tsc-alias",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:debug": "vitest --inspect-brk --inspect --logHeapUsage --threads=false"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedro5g/push-notifications-microservice.git"
+  },
+  "keywords": [
+    "fastify",
+    "ts",
+    "web-push"
+  ],
+  "author": "Pedro5g",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pedro5g/push-notifications-microservice/issues"
+  },
+  "homepage": "https://github.com/pedro5g/push-notifications-microservice#readme",
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@fastify/helmet": "^13.0.1",
+    "@fastify/rate-limit": "^10.3.0",
+    "fastify": "^5.4.0",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.12.14",
+    "@types/node": "^24.0.14",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "unplugin-swc": "^1.5.5",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^3.2.4"
+  }
+}
