@@ -1,7 +1,7 @@
 import {
   ErrorCode,
-  HTTP_STATUS,
   type ErrorCodeType,
+  HTTP_STATUS,
   type HttpStatusCode,
 } from './constraints';
 
@@ -12,7 +12,7 @@ export class AppError extends Error {
   constructor(
     message: string,
     statusCode: HttpStatusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR,
-    errorCode: ErrorCodeType
+    errorCode?: ErrorCodeType
   ) {
     super(message);
     this.statusCode = statusCode;
@@ -57,8 +57,8 @@ export class InternalServerException extends AppError {
 export class HttpException extends AppError {
   constructor(
     message = 'Http Exception Error',
-    statusCode: HttpStatusCode,
-    errorCode: ErrorCodeType
+    statusCode?: HttpStatusCode,
+    errorCode?: ErrorCodeType
   ) {
     super(message, statusCode, errorCode);
   }

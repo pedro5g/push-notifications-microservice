@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.js",
+    "**/*.spec.ts",
+    "**/*.spec.js",
+    "**/tests/**/*",
+    "**/test/**/*",
+    "**/__tests__/**/*",
+    "**/__mocks__/**/*",
+    "vitest.config.ts"
+  ]
+}

@@ -3,10 +3,12 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "allowJs": false,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -15,7 +17,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
+    // "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
@@ -29,19 +31,51 @@
     "skipLibCheck": true,
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"],
-      "@/config/*": ["./config/*"],
-      "@/controllers/*": ["./controllers/*"],
-      "@/services/*": ["./services/*"],
-      "@/repositories/*": ["./repositories/*"],
-      "@/models/*": ["./models/*"],
-      "@/middlewares/*": ["./middlewares/*"],
-      "@/utils/*": ["./utils/*"],
-      "@/types/*": ["./types/*"],
-      "@/validators/*": ["./validators/*"],
-      "@/jobs/*": ["./jobs/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/config/*": [
+        "./config/*"
+      ],
+      "@/controllers/*": [
+        "./controllers/*"
+      ],
+      "@/services/*": [
+        "./services/*"
+      ],
+      "@/repositories/*": [
+        "./repositories/*"
+      ],
+      "@/models/*": [
+        "./models/*"
+      ],
+      "@/middlewares/*": [
+        "./middlewares/*"
+      ],
+      "@/utils/*": [
+        "./utils/*"
+      ],
+      "@/@types/*": [
+        "./@types/*"
+      ],
+      "@/validators/*": [
+        "./validators/*"
+      ],
+      "@/jobs/*": [
+        "./jobs/*"
+      ]
     },
-    "types": ["vitest/globals"]
+    "types": [
+      "vitest/globals"
+    ]
   },
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "vitest.config.ts"
+  ],
 }
