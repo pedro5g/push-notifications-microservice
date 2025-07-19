@@ -1,3 +1,5 @@
+import type { UserSettingResponse } from './user-setting.model';
+
 export type UserStatus =
   | 'active'
   | 'inactive'
@@ -43,4 +45,20 @@ export interface UserResponse {
   last_login_at: Date | null;
   created_at: Date;
   updated_at: Date | null;
+}
+
+export interface AuthenticatedUser {
+  user: UserResponse;
+  settings: UserSettingResponse;
+}
+
+export type GetUserContextWhere = { id: string } | { email: string };
+
+export interface IUserRepository {
+  create(args: CreateUser): Promise<void>;
+  update(args: UpdateUser): Promise<void>;
+  softDelete(userId: string): Promise<void>;
+  findByEmail(email: string, where: Partial<User>): Promise<User | null>;
+  findById(userId: string, where: Partial<User>): Promise<User | null>;
+  getUserContext(where: GetUserContextWhere): Promise<AuthenticatedUser | null>;
 }

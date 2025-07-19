@@ -7,8 +7,7 @@
       "ES2022"
     ],
     "allowJs": false,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "./build",
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -17,7 +16,6 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    // "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,

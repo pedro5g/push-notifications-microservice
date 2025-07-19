@@ -1,8 +1,11 @@
+import 'dotenv/config';
 import { z } from 'zod';
 import { ExitCode } from '@/utils/constraints';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'prod', 'test']).default('dev'),
+  LOG_RULES: z.string().optional(),
+  LOG_WRITE_TO_FILE: z.string().default('false'),
   PORT: z.coerce.number().default(3000),
   HOST: z.string().default('0.0.0.0'),
   PG_DATABASE_HOST: z.string().default('localhost'),
