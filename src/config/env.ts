@@ -1,10 +1,17 @@
-import { ExitCode } from '@/utils/constraints';
 import { z } from 'zod';
+import { ExitCode } from '@/utils/constraints';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'prod', 'test']).default('dev'),
   PORT: z.coerce.number().default(3000),
   HOST: z.string().default('0.0.0.0'),
+  PG_DATABASE_HOST: z.string().default('localhost'),
+  PG_DATABASE_PORT: z.coerce.number(),
+  PG_DATABASE_USERNAME: z.string(),
+  PG_DATABASE_PASSWORD: z.string(),
+  PG_DATABASE_NAME: z.string(),
+  REDIS_PASSWORD: z.string(),
+  REDIS_PORT: z.coerce.number(),
 });
 
 const _env = envSchema.safeParse(process.env);

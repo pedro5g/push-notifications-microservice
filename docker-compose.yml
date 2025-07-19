@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  postgres:
+    container_name: push_notification_psql
+    image: bitnami/postgresql:latest
+    ports:
+      - 5432:${PG_DATABASE_PORT}
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${PG_DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${PG_DATABASE_PASSWORD}
+      - POSTGRES_DB=${PG_DATABASE_NAME}
+    volumes:
+      - ./data/pg:/data/postgres
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
+  redis:
+      container_name: push_notification_redis
+      image: redis:6.2-alpine
+      env_file:
+        - .env
+      ports:
+        - 6379:${REDIS_PORT}
+      volumes:
+        - ./data:/data
+      command: redis-server --requirepass ${REDIS_PASSWORD}
+      extra_hosts:
+      - "host.docker.internal:127.0.0.1"
