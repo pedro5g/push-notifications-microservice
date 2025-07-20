@@ -8,6 +8,10 @@ const envSchema = z.object({
   LOG_WRITE_TO_FILE: z.string().default('false'),
   PORT: z.coerce.number().default(3000),
   HOST: z.string().default('0.0.0.0'),
+  FINGERPRINT_SALT: z.string().default('finger_print_salt'),
+  ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/, {
+    message: 'ENCRYPTION_KEY must be a 64-character hex string (32 bytes)',
+  }),
   PG_DATABASE_HOST: z.string().default('localhost'),
   PG_DATABASE_PORT: z.coerce.number(),
   PG_DATABASE_USERNAME: z.string(),
