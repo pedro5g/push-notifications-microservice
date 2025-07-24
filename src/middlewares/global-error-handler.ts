@@ -1,29 +1,16 @@
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import z from 'zod';
-import { env } from '@/config/env';
 import { ErrorCode, HTTP_STATUS } from '@/utils/constraints';
 import { AppError } from '@/utils/exceptions';
+import { Logger } from '@/utils/logger';
 
-const formatZodError = (reply: FastifyReply, error: z.ZodError) => {
-  const errors = error.issues.map((err) => ({
-    field: err.path.join('.'),
-    message: err.message,
-  }));
-  return reply.status(HTTP_STATUS.BAD_REQUEST).send({
-    ok: false,
-    message: 'Validation failed',
-    errors,
-    errorCode: ErrorCode.VALIDATION_ERROR,
-  });
-};
+const logger = new Logger('Global error handler');
 
 export const globalErrorHandler = (
   error: FastifyError,
   req: FastifyRequest,
   reply: FastifyReply
 ) => {
-  if (env.NODE_ENV !== 'test')
-    console.error(`Error on PATH: ${req.url}`, error);
+  logger.error(`Error on PATH: ${req.url}`, error);
 
   if (error instanceof SyntaxError) {
     return reply.status(HTTP_STATUS.BAD_REQUEST).send({
@@ -32,8 +19,18 @@ export const globalErrorHandler = (
     });
   }
 
-  if (error instanceof z.ZodError) {
-    return formatZodError(reply, error);
+  if (error.validation) {
+    const errors = error.validation.map((error) => ({
+      field: error.instancePath.split('/')[1],
+      message: error.message,
+    }));
+
+    return reply.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).send({
+      ok: false,
+      message: 'Validation failed',
+      errors: errors,
+      errorCode: ErrorCode.VALIDATION_ERROR,
+    });
   }
 
   if (error instanceof AppError) {

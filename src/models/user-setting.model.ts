@@ -26,3 +26,17 @@ export interface CreateUserSetting {
 export interface UpdateUserSetting extends Partial<CreateUserSetting> {}
 
 export interface UserSettingResponse extends UserSetting {}
+
+export interface IUserSettingsRepository<T = UserSetting> {
+  create(args: CreateUserSetting): Promise<void>;
+  update(args: UpdateUserSetting): Promise<void>;
+  delete(userId: string): Promise<void>;
+  findById<K extends keyof T>(
+    userId: string,
+    select: K[]
+  ): Promise<Pick<T, K> | null>;
+  findById<K extends keyof T>(
+    userId: string,
+    ...select: K[]
+  ): Promise<Pick<T, K> | null>;
+}

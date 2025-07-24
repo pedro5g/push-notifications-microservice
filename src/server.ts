@@ -48,7 +48,7 @@ async function main(): Promise<void> {
 
     logger.info(`Server running on http://${env.HOST}:${env.PORT} 🚀`);
 
-    if (env.NODE_ENV === 'dev') {
+    if (env.NODE_ENV === 'development') {
       logger.info(`📚 API Documentation: http://${env.HOST}:${env.PORT}/docs`);
     }
 

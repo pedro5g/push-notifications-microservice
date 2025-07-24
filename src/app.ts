@@ -11,6 +11,7 @@ import {
 } from 'fastify-type-provider-zod';
 import z from 'zod';
 import { env } from './config/env';
+import { AuthControllers } from './controllers/auth.controllers';
 import { globalErrorHandler } from './middlewares/global-error-handler';
 import { HTTP_STATUS } from './utils/constraints';
 
@@ -33,7 +34,7 @@ export function buildApp(): FastifyInstance {
 
   app.setErrorHandler(globalErrorHandler);
 
-  if (env.NODE_ENV === 'dev') {
+  if (env.NODE_ENV === 'development') {
     app.register(fastifySwagger, {
       openapi: {
         info: {
@@ -57,7 +58,7 @@ export function buildApp(): FastifyInstance {
         tags: ['Health'],
         description: 'Health check endpoint',
         response: {
-          200: z.object({
+          [HTTP_STATUS.OK]: z.object({
             timestamp: z.string(),
             uptime: z.number(),
             version: z.string(),
@@ -74,11 +75,13 @@ export function buildApp(): FastifyInstance {
     }
   );
 
+  app.register(AuthControllers, { prefix: env.API_PREFIX });
+
   app.setNotFoundHandler(async (request, reply) => {
-    reply.code(404).send({
+    return reply.status(HTTP_STATUS.NOT_FOUND).send({
       error: 'Not Found',
       message: `Route ${request.method}:${request.url} not found`,
-      statusCode: 404,
+      statusCode: HTTP_STATUS.NOT_FOUND,
     });
   });
 

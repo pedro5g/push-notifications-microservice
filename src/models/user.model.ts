@@ -47,18 +47,31 @@ export interface UserResponse {
   updated_at: Date | null;
 }
 
-export interface AuthenticatedUser {
-  user: UserResponse;
-  settings: UserSettingResponse;
+export interface AuthenticatedUser extends Omit<User, 'deleted_at'> {
+  settings: UserSettingResponse | null;
 }
 
 export type GetUserContextWhere = { id: string } | { email: string };
 
-export interface IUserRepository {
+export interface IUserRepository<T = User> {
   create(args: CreateUser): Promise<void>;
   update(args: UpdateUser): Promise<void>;
   softDelete(userId: string): Promise<void>;
-  findByEmail(email: string, where: Partial<User>): Promise<User | null>;
-  findById(userId: string, where: Partial<User>): Promise<User | null>;
+  findByEmail<K extends keyof T>(
+    email: string,
+    select: K[]
+  ): Promise<Pick<T, K> | null>;
+  findByEmail<K extends keyof T>(
+    email: string,
+    ...select: K[]
+  ): Promise<Pick<T, K> | null>;
+  findById<K extends keyof T>(
+    userId: string,
+    select: K[]
+  ): Promise<Pick<T, K> | null>;
+  findById<K extends keyof T>(
+    userId: string,
+    ...select: K[]
+  ): Promise<Pick<T, K> | null>;
   getUserContext(where: GetUserContextWhere): Promise<AuthenticatedUser | null>;
 }
