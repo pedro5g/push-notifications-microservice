@@ -18,7 +18,9 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
+  API_URL: z.url(),
   API_PREFIX: z.string(),
+  PIXEL_PATH: z.string(),
   LOG_RULES: z.string().optional(),
   LOG_WRITE_TO_FILE: z.string().default('false'),
   PORT: z.coerce.number().default(3000),
@@ -40,6 +42,10 @@ const envSchema = z.object({
   PG_DATABASE_NAME: z.string(),
   REDIS_PASSWORD: z.string(),
   REDIS_PORT: z.coerce.number(),
+  REDIS_HOST: z.string().default('localhost'),
+  SMTP_SERVICE: z.string(),
+  SMTP_PASSWORD: z.string(),
+  SMTP_USER: z.email(),
 });
 
 const _env = envSchema.safeParse(process.env);

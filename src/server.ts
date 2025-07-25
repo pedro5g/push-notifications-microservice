@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app';
-import { KnexInstance } from './config/db';
+import { DatabaseConnection } from './config/db';
 import { env } from './config/env';
+import { RedisConnection } from './config/redis';
 import { ExitCode } from './utils/constraints';
 import { Logger } from './utils/logger';
 
@@ -15,7 +16,8 @@ async function gracefulShutdown(
 
   try {
     app.server.close();
-    await KnexInstance.destroy();
+    await DatabaseConnection.destroy();
+    await RedisConnection.disconnect();
     logger.info('Graceful shutdown completed');
     process.exit(ExitCode.SUCCESS);
   } catch (error) {
@@ -39,7 +41,8 @@ function fatalError() {
 async function main(): Promise<void> {
   try {
     const app = buildApp();
-    await KnexInstance.init();
+    await DatabaseConnection.init();
+    await RedisConnection.init();
 
     await app.listen({
       port: env.PORT,

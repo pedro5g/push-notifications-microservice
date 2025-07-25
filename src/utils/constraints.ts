@@ -43,6 +43,10 @@ export const HTTP_STATUS = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
+export const QUEUE_NAMES = {
+  EMAIL_QUEUE: 'email-queue',
+} as const;
+
 export const ExitCode = {
   FAILURE: 1,
   SUCCESS: 0,
@@ -51,3 +55,4 @@ export const ExitCode = {
 export type ExitCodeType = keyof typeof ExitCode;
 export type HttpStatusCode = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
 export type ErrorCodeType = keyof typeof ErrorCode;
+export type QueueNamesType = keyof typeof QUEUE_NAMES;

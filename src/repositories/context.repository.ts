@@ -1,20 +1,24 @@
 import type { Knex } from 'knex';
-import { KnexInstance } from '@/config/db';
+import { DatabaseConnection } from '@/config/db';
 import type { IUserRepository } from '@/models/user.model';
 import type { IUserSettingsRepository } from '@/models/user-setting.model';
+import type { IUserTokenRepository } from '@/models/user-tokens.model';
 import { BaseRepository } from './base.repository';
 import { UserRepository } from './user.repository';
 import { UserSettingsRepository } from './user-settings.repository';
+import { UserTokensRepository } from './user-tokens.repository';
 
 export class ContextRepository {
   db: Knex;
   users: IUserRepository;
   userSettings: IUserSettingsRepository;
+  userTokens: IUserTokenRepository;
 
   constructor() {
-    this.db = KnexInstance.getInstance();
+    this.db = DatabaseConnection.getInstance();
     this.users = new UserRepository(this);
     this.userSettings = new UserSettingsRepository(this);
+    this.userTokens = new UserTokensRepository(this);
   }
 
   async transaction(fn: Function, callback?: (error: unknown) => void) {
