@@ -2,7 +2,9 @@ import type {
   CountTokenArgs,
   CountTokenWithIntervalArgs,
   CreateUserToken,
-  GetLastTokenArgs,
+  FindByTokenArgs,
+  FindValidTokenArgs,
+  GetLastValidTokenArgs,
   IUserTokenRepository,
   UpdateUserToken,
   UserToken,
@@ -46,6 +48,19 @@ export class UserTokensRepository
     return token ?? null;
   }
 
+  async findByToken({
+    token,
+    type,
+  }: FindByTokenArgs): Promise<UserToken | null> {
+    const userToken = await this.knex('user_tokens')
+      .where({
+        token,
+        type,
+      })
+      .first();
+    return userToken ?? null;
+  }
+
   async findManyByUserId(userId: string): Promise<UserToken[]> {
     const tokes = await this.knex('user_tokens').where({
       user_id: userId,
@@ -54,16 +69,32 @@ export class UserTokensRepository
     return tokes;
   }
 
-  async getLastToken({
+  async findValidToken({
+    token,
+    type,
+  }: FindValidTokenArgs): Promise<UserToken | null> {
+    const userToken = await this.knex('user_tokens')
+      .where({
+        token,
+        type,
+      })
+      .andWhere('expired_at', '<', this.knex.fn.now())
+      .andWhere({ used_at: null })
+      .first();
+
+    return userToken ?? null;
+  }
+  async getLastValidToken({
     userId,
     type,
-  }: GetLastTokenArgs): Promise<UserToken | null> {
+  }: GetLastValidTokenArgs): Promise<UserToken | null> {
     const token = await this.knex('user_tokens')
       .where({
         user_id: userId,
         type,
       })
-      .orderBy('created_at', 'desc')
+      .andWhere('expired_at', '<', this.knex.fn.now())
+      .andWhere({ used_at: null })
       .first();
 
     return token ?? null;
@@ -78,7 +109,7 @@ export class UserTokensRepository
       .count()
       .first();
 
-    return Number(count);
+    return Number(count?.count ?? 0);
   }
 
   async countTokensWithInterval({
@@ -91,10 +122,14 @@ export class UserTokensRepository
         user_id: userId,
         type,
       })
-      .andWhere('created_at', '>', this.knex(`now() - interval '${interval}'`))
+      .andWhere(
+        'created_at',
+        '>',
+        this.knex.raw(`now() - interval '${interval}'`)
+      )
       .count()
       .first();
 
-    return Number(count);
+    return Number(count?.count ?? 0);
   }
 }

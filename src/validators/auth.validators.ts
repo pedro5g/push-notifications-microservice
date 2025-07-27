@@ -1,6 +1,10 @@
-import z from 'zod';
+import { z } from 'zod';
 import { HTTP_STATUS } from '@/utils/constraints';
-import { validateErrorSchema } from './utils.validators';
+import {
+  badRequestSchema,
+  okSchema,
+  validateErrorSchema,
+} from './utils.validators';
 
 export const registerUserBodySchema = z.object({
   name: z.string().min(3).max(255),
@@ -13,11 +17,7 @@ export const registerUserResponseSchema = {
     ok: z.boolean(),
     message: z.string(),
   }),
-  [HTTP_STATUS.BAD_REQUEST]: z.object({
-    ok: z.boolean(),
-    message: z.string(),
-    errorCode: z.string(),
-  }),
+  [HTTP_STATUS.BAD_REQUEST]: badRequestSchema,
   [HTTP_STATUS.UNPROCESSABLE_ENTITY]: validateErrorSchema,
 };
 
@@ -45,7 +45,6 @@ export const loginResponseSchema = {
       updated_at: z.date().nullable(),
       settings: z.object({
         id: z.string(),
-        user_id: z.string(),
         language: z.string(),
         email_notifications: z.boolean(),
         push_notifications: z.boolean(),
@@ -66,4 +65,49 @@ export const loginResponseSchema = {
     errorCode: z.string(),
   }),
   [HTTP_STATUS.UNPROCESSABLE_ENTITY]: validateErrorSchema,
+};
+
+export const emailVerifyQuerySchema = z.object({
+  token: z.string(),
+});
+
+export const emailVerifyResponseSchema = {
+  [HTTP_STATUS.OK]: okSchema,
+  [HTTP_STATUS.BAD_REQUEST]: badRequestSchema,
+};
+
+export const refreshBodySchema = z.object({
+  refreshToken: z.jwt(),
+});
+
+export const refreshResponseSchema = {
+  [HTTP_STATUS.OK]: okSchema.and(
+    z.object({
+      accessToken: z.jwt(),
+      refreshToken: z.jwt(),
+    })
+  ),
+  [HTTP_STATUS.UNAUTHORIZED]: badRequestSchema,
+};
+
+export const forgotPasswordBodySchema = z.object({
+  email: z.email(),
+});
+
+export const forgotPasswordResponseSchema = {
+  [HTTP_STATUS.OK]: okSchema,
+  [HTTP_STATUS.UNPROCESSABLE_ENTITY]: validateErrorSchema,
+  [HTTP_STATUS.NOT_FOUND]: badRequestSchema,
+  [HTTP_STATUS.TOO_MANY_REQUESTS]: badRequestSchema,
+};
+
+export const resetPasswordBodySchema = z.object({
+  token: z.string(),
+  password: z.string().min(3).max(100),
+});
+
+export const resetPasswordResponseSchema = {
+  [HTTP_STATUS.OK]: okSchema,
+  [HTTP_STATUS.UNPROCESSABLE_ENTITY]: validateErrorSchema,
+  [HTTP_STATUS.NOT_FOUND]: badRequestSchema,
 };

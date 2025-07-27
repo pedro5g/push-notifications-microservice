@@ -3,8 +3,11 @@ import { buildApp } from './app';
 import { DatabaseConnection } from './config/db';
 import { env } from './config/env';
 import { RedisConnection } from './config/redis';
+import { EmailQueue } from './queue/email.queue';
+import { ManagerQueue } from './queue/manager.queue';
 import { ExitCode } from './utils/constraints';
 import { Logger } from './utils/logger';
+import { EmailWorker } from './workers/email.worker';
 
 const logger = new Logger('Server');
 
@@ -18,6 +21,8 @@ async function gracefulShutdown(
     app.server.close();
     await DatabaseConnection.destroy();
     await RedisConnection.disconnect();
+    const queueManager = ManagerQueue.getInstance();
+    await queueManager.shutdown();
     logger.info('Graceful shutdown completed');
     process.exit(ExitCode.SUCCESS);
   } catch (error) {
@@ -28,6 +33,7 @@ async function gracefulShutdown(
 
 function fatalError() {
   process.on('unhandledRejection', (reason, promise) => {
+    console.log(reason);
     logger.error('Unhandled Rejection at:', `${promise}, 'reason:', ${reason}`);
     process.exit(ExitCode.FAILURE);
   });
@@ -38,11 +44,24 @@ function fatalError() {
   });
 }
 
+async function initializeQueues() {
+  const queueManager = ManagerQueue.getInstance();
+
+  const emailQueue = new EmailQueue();
+  const emailWorker = new EmailWorker();
+
+  queueManager.registerQueue('email', emailQueue);
+  queueManager.registerWorker('email', emailWorker);
+
+  logger.info('Queues initialized');
+}
+
 async function main(): Promise<void> {
   try {
     const app = buildApp();
     await DatabaseConnection.init();
     await RedisConnection.init();
+    initializeQueues();
 
     await app.listen({
       port: env.PORT,

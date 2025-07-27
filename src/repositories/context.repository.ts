@@ -9,32 +9,47 @@ import { UserSettingsRepository } from './user-settings.repository';
 import { UserTokensRepository } from './user-tokens.repository';
 
 export class ContextRepository {
+  private static instance: ContextRepository;
   db: Knex;
   users: IUserRepository;
   userSettings: IUserSettingsRepository;
   userTokens: IUserTokenRepository;
 
-  constructor() {
+  private constructor() {
     this.db = DatabaseConnection.getInstance();
     this.users = new UserRepository(this);
     this.userSettings = new UserSettingsRepository(this);
     this.userTokens = new UserTokensRepository(this);
   }
 
-  async transaction(fn: Function, callback?: (error: unknown) => void) {
+  static getInstance(): ContextRepository {
+    if (!ContextRepository.instance) {
+      ContextRepository.instance = new ContextRepository();
+    }
+    return ContextRepository.instance;
+  }
+
+  async transaction<T>(
+    fn: () => Promise<T>,
+    callback?: (error: unknown) => void
+  ): Promise<T> {
     try {
-      await this.db.transaction(async (trx) => {
+      const result = await this.db.transaction(async (trx) => {
         for (const key in this) {
           if (this[key] instanceof BaseRepository) {
             this[key].knex = trx;
           }
         }
 
-        await fn();
+        const value = await fn();
+        return value;
       });
+
+      return result;
     } catch (e) {
       if (callback) {
         callback(e);
+        return await Promise.reject(e);
       } else {
         throw e;
       }

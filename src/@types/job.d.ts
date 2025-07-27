@@ -62,6 +62,14 @@ export interface SendVerificationEmailJobData extends JobData {
   verificationToken: string;
 }
 
+export interface SendResetPasswordEmailJobData extends JobData {
+  userId: string;
+  email: string;
+  name: string;
+  resetToken: string;
+  expiredAt: Date;
+}
+
 export interface SendWelcomeEmailJobData extends JobData {
   userId: string;
   email: string;

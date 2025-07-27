@@ -11,8 +11,9 @@ import {
 } from 'fastify-type-provider-zod';
 import z from 'zod';
 import { env } from './config/env';
-import { AuthControllers } from './controllers/auth.controllers';
 import { globalErrorHandler } from './middlewares/global-error-handler';
+import { loggerRequester } from './middlewares/logger-requester';
+import { AuthModele } from './modules/auth.module';
 import { HTTP_STATUS } from './utils/constraints';
 
 export function buildApp(): FastifyInstance {
@@ -31,6 +32,8 @@ export function buildApp(): FastifyInstance {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   });
+
+  loggerRequester(app);
 
   app.setErrorHandler(globalErrorHandler);
 
@@ -75,7 +78,7 @@ export function buildApp(): FastifyInstance {
     }
   );
 
-  app.register(AuthControllers, { prefix: env.API_PREFIX });
+  app.register(AuthModele.bind, { prefix: env.API_PREFIX });
 
   app.setNotFoundHandler(async (request, reply) => {
     return reply.status(HTTP_STATUS.NOT_FOUND).send({

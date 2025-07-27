@@ -2,12 +2,15 @@ import type {
   EmailData,
   JobOptions,
   SendEmailJobData,
+  SendResetPasswordEmailJobData,
   SendVerificationEmailJobData,
 } from '@/@types/job';
 import { BaseQueue } from './base.queue';
 
 export class EmailQueue extends BaseQueue<
-  SendEmailJobData | SendVerificationEmailJobData
+  | SendEmailJobData
+  | SendVerificationEmailJobData
+  | SendResetPasswordEmailJobData
 > {
   constructor() {
     super({
@@ -33,6 +36,16 @@ export class EmailQueue extends BaseQueue<
     options?: JobOptions
   ) {
     return this.add('send-verification-email', data, {
+      priority: 10,
+      ...options,
+    });
+  }
+
+  async sendResetPasswordEmail(
+    data: SendResetPasswordEmailJobData,
+    options?: JobOptions
+  ) {
+    return this.add('send-reset-password-email', data, {
       priority: 10,
       ...options,
     });

@@ -27,6 +27,7 @@ export interface CreateUser {
 }
 
 export interface UpdateUser {
+  id: string;
   name?: string;
   email?: string;
   password_hash?: string;
@@ -48,13 +49,13 @@ export interface UserResponse {
 }
 
 export interface AuthenticatedUser extends Omit<User, 'deleted_at'> {
-  settings: UserSettingResponse | null;
+  settings: UserSettingResponse;
 }
 
 export type GetUserContextWhere = { id: string } | { email: string };
 
 export interface IUserRepository<T = User> {
-  create(args: CreateUser): Promise<void>;
+  create(args: CreateUser): Promise<User>;
   update(args: UpdateUser): Promise<void>;
   softDelete(userId: string): Promise<void>;
   findByEmail<K extends keyof T>(

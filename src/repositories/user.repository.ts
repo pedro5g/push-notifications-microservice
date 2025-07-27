@@ -14,15 +14,22 @@ export class UserRepository extends BaseRepository implements IUserRepository {
     email,
     password_hash,
     status,
-  }: CreateUser): Promise<void> {
-    await this.knex('users').insert({
-      name,
-      email,
-      password_hash,
-      status,
-    });
+  }: CreateUser): Promise<User> {
+    const [insertResponse] = await this.knex('users')
+      .insert({
+        name,
+        email,
+        password_hash,
+        status,
+      })
+      .returning('*');
+
+    if (!insertResponse) throw new Error('Error on insert user');
+
+    return insertResponse;
   }
   async update({
+    id,
     name,
     email_verified_at,
     last_login_at,
@@ -39,8 +46,9 @@ export class UserRepository extends BaseRepository implements IUserRepository {
         password_hash,
         deleted_at,
         status,
+        email,
       })
-      .where({ email });
+      .where({ id });
   }
 
   async softDelete(userId: string): Promise<void> {
@@ -132,9 +140,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
   `,
       [_where]
     );
-
-    console.log(result.rows);
-
-    return result.rows[0] ?? null;
+    const user = result.rows[0];
+    return user ?? null;
   }
 }

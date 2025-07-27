@@ -23,11 +23,15 @@
       "recommended": true,
       "suspicious": {
         "noControlCharactersInRegex": "off",
-        "noExplicitAny": "off"
+        "noExplicitAny": "off",
+        "noAssignInExpressions": "off"
       },
       "complexity": {
         "noBannedTypes": "off",
         "noStaticOnlyClass": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "off"
       }
     }
   },

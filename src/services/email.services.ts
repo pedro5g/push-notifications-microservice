@@ -55,6 +55,7 @@ export class EmailServices {
       }
 
       const mailOptions: SendMailOptions = {
+        subject: emailData.subject,
         from: emailData.from,
         to: emailData.to,
         html: htmlContent,

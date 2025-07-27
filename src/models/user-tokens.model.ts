@@ -22,12 +22,21 @@ export interface UpdateUserToken {
   used_at: Date;
 }
 
-export interface GetLastTokenArgs {
+export interface FindByTokenArgs {
+  token: string;
+  type: UserTokenTypes;
+}
+
+export interface GetLastValidTokenArgs {
   userId: string;
   type: UserTokenTypes;
 }
 export interface CountTokenArgs {
   userId: string;
+  type: UserTokenTypes;
+}
+export interface FindValidTokenArgs {
+  token: string;
   type: UserTokenTypes;
 }
 
@@ -55,8 +64,10 @@ export interface IUserTokenRepository {
   update(args: UpdateUserToken): Promise<void>;
   delete(id: string): Promise<void>;
   findById(id: string): Promise<UserToken | null>;
+  findByToken(args: FindByTokenArgs): Promise<UserToken | null>;
+  findValidToken(args: FindValidTokenArgs): Promise<UserToken | null>;
   findManyByUserId(userId: string): Promise<UserToken[]>;
-  getLastToken(args: GetLastTokenArgs): Promise<UserToken | null>;
+  getLastValidToken(args: GetLastValidTokenArgs): Promise<UserToken | null>;
   countTokens(args: CountTokenArgs): Promise<number>;
   /**
    *

@@ -1,20 +1,20 @@
 import type { Job } from 'bullmq';
-import type { JobResult, SendVerificationEmailJobData } from '@/@types/job';
+import type { JobResult, SendResetPasswordEmailJobData } from '@/@types/job';
 import { env } from '@/config/env';
 import { EmailServices } from '@/services/email.services';
 import { EmailTemplates } from '@/templates/email.templates';
 
-export class SendVerificationEmailJob {
+export class SendResetPasswordEmailJob {
   static async process(
-    job: Job<SendVerificationEmailJobData>
+    job: Job<SendResetPasswordEmailJobData>
   ): Promise<JobResult> {
     const emailService = new EmailServices();
-    const { email, name, verificationToken } = job.data;
+    const { email, name, resetToken, expiredAt } = job.data;
 
-    const verificationUrl = `${env.API_URL}/${env.API_PREFIX}/auth/verify-email?token=${verificationToken}`;
-    const template = EmailTemplates.verification({
+    const resetUrl = `${env.UI_URL}/reset-password?token=${resetToken}&expires=${new Date(expiredAt).getTime()}`;
+    const template = EmailTemplates.passwordReset({
       name,
-      verificationUrl,
+      resetUrl,
     });
 
     const result = await emailService.sendEmail({
@@ -23,7 +23,7 @@ export class SendVerificationEmailJob {
       subject: template.subject,
       html: template.html,
       text: template.text,
-      metadata: { type: 'verification', userId: job.data.userId },
+      metadata: { type: 'reset', userId: job.data.userId },
     });
 
     if (result.success) {

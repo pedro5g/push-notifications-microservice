@@ -1,14 +1,24 @@
+import type { AuthenticatedUser } from '@/models/user.model';
+import type { EmailQueue } from '@/queue/email.queue';
 import type { ContextRepository } from '@/repositories/context.repository';
-import { ErrorCode } from '@/utils/constraints';
+import { ErrorCode, HTTP_STATUS } from '@/utils/constraints';
 import { compareHashes, genFingerprint, toHash } from '@/utils/crypt';
-import { BadRequestException } from '@/utils/exceptions';
+import {
+  BadRequestException,
+  HttpException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@/utils/exceptions';
 import {
   type AccessTokenPayload,
   accessTokenConfig,
   type RefreshTokenPayload,
   refreshTokenConfig,
   signToken,
+  verifyToken,
 } from '@/utils/jwt';
+import { Logger } from '@/utils/logger';
+import { randomString } from '@/utils/random-string';
 
 interface RegisterUserDto {
   name: string;
@@ -23,11 +33,33 @@ interface LoginDto {
   userAgent: string;
 }
 
-export class AuthServices {
-  constructor(private readonly ctxRepository: ContextRepository) {}
+interface ConfirmAccountDto {
+  token: string;
+}
+interface RefreshDto {
+  refreshToken: string;
+  ip: string;
+  userAgent: string;
+}
 
-  async register({ name, email, password }: RegisterUserDto): Promise<void> {
-    const userExists = await this.ctxRepository.users.findByEmail(email);
+interface ForgotPasswordDto {
+  email: string;
+}
+
+interface ResetPasswordDto {
+  token: string;
+  password: string;
+}
+
+export class AuthServices {
+  private logger = new Logger(AuthServices.name);
+  constructor(
+    private readonly ctx: ContextRepository,
+    private readonly emailQueue: EmailQueue
+  ) {}
+
+  async register({ name, email, password }: RegisterUserDto) {
+    const userExists = await this.ctx.users.findByEmail(email);
 
     if (userExists) {
       throw new BadRequestException(
@@ -38,25 +70,90 @@ export class AuthServices {
 
     const password_hash = await toHash(password);
 
-    await this.ctxRepository.users.create({
+    const { user, token } = await this.ctx.transaction(async () => {
+      const user = await this.ctx.users.create({
+        name,
+        email,
+        password_hash,
+      });
+
+      const _token = randomString(20);
+      const verificationExpires = new Date();
+      verificationExpires.setHours(verificationExpires.getHours() + 24); // 1 day
+      await this.ctx.userTokens.create({
+        token: _token,
+        type: 'email_verification',
+        expired_at: verificationExpires,
+        user_id: user.id,
+      });
+
+      return {
+        user,
+        token: _token,
+      };
+    });
+
+    await this.emailQueue.sendVerificationEmail({
+      userId: user.id,
       name,
       email,
-      password_hash,
+      verificationToken: token,
     });
+
+    return {
+      success: true,
+      message:
+        'User registered successfully. Please check your email to verify your account.',
+    };
+  }
+
+  async confirmAccount({ token }: ConfirmAccountDto) {
+    const confirmationToken = await this.ctx.userTokens.findValidToken({
+      token,
+      type: 'email_verification',
+    });
+
+    if (!confirmationToken) {
+      throw new BadRequestException(
+        'Invalid or expired verification code, please try to login',
+        ErrorCode.VERIFICATION_ERROR
+      );
+    }
+
+    await this.ctx.transaction(async () => {
+      await this.ctx.users.update({
+        id: confirmationToken.user_id,
+        status: 'active',
+        email_verified_at: new Date(),
+      });
+      await this.ctx.userSettings.create({
+        user_id: confirmationToken.user_id,
+      });
+      await this.ctx.userTokens.delete(confirmationToken.id);
+    });
+
+    return {
+      success: true,
+      message: 'Account confirmed successfully',
+    };
   }
 
   async login({ email, password, ip, userAgent }: LoginDto) {
-    const user = await this.ctxRepository.users.getUserContext({ email });
+    const user = await this.ctx.users.getUserContext({ email });
 
     if (!user) {
       throw new BadRequestException('Invalid password or email');
     }
+
+    await this.userAccountIsConfirmed(user);
 
     const isMatch = await compareHashes(user.password_hash, password);
 
     if (!isMatch) {
       throw new BadRequestException('Invalid password or email');
     }
+
+    await this.ctx.users.update({ id: user.id, last_login_at: new Date() });
 
     const accessToken = signToken<AccessTokenPayload>(
       {
@@ -75,12 +172,205 @@ export class AuthServices {
       refreshTokenConfig.sign
     );
 
-    const { password_hash, ...rest } = user;
+    // JSON_BUILD_OBJECT by default serialize date to string
+    user.settings.created_at = new Date(user.settings.created_at);
+    user.settings.updated_at = user.settings.updated_at
+      ? new Date(user.settings.updated_at)
+      : null;
+
+    const { password_hash, ...withOutPassword } = user;
 
     return {
-      user: rest,
+      user: withOutPassword,
       accessToken,
       refreshToken,
     };
+  }
+
+  async refresh({ refreshToken, ip, userAgent }: RefreshDto) {
+    const payload = verifyToken<RefreshTokenPayload>(
+      refreshToken,
+      refreshTokenConfig.verify
+    );
+
+    if (!payload) {
+      throw new UnauthorizedException(
+        'Invalid refresh token',
+        ErrorCode.AUTH_INVALID_TOKEN
+      );
+    }
+
+    const isMatch = await compareHashes(
+      payload.fingerprint,
+      `${ip}-${userAgent}`
+    );
+
+    if (!isMatch) {
+      this.logger.warn("Fingerprint does'nt match", `${ip}-${userAgent}`);
+      throw new UnauthorizedException(
+        'Invalid refresh token',
+        ErrorCode.AUTH_INVALID_TOKEN
+      );
+    }
+
+    const user = await this.ctx.users.findById(payload.id);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Invalid refresh token',
+        ErrorCode.AUTH_INVALID_TOKEN
+      );
+    }
+
+    const accessToken = signToken<AccessTokenPayload>(
+      {
+        id: user.id,
+      },
+      accessTokenConfig.sign
+    );
+    const newRefreshToken = signToken<RefreshTokenPayload>(
+      {
+        id: user.id,
+        fingerprint: payload.fingerprint,
+      },
+      refreshTokenConfig.sign
+    );
+
+    return {
+      accessToken,
+      newRefreshToken,
+    };
+  }
+
+  async forgotPassword({ email }: ForgotPasswordDto) {
+    const user = await this.ctx.users.findByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('Account not found');
+    }
+    const MAX_ATTEMPTS = 3;
+
+    const count = await this.ctx.userTokens.countTokensWithInterval({
+      userId: user.id,
+      type: 'password_reset',
+      interval: '1 hour',
+    });
+
+    if (count >= MAX_ATTEMPTS) {
+      throw new HttpException(
+        'Too many request, try again later',
+        HTTP_STATUS.TOO_MANY_REQUESTS,
+        ErrorCode.AUTH_TOO_MANY_ATTEMPTS
+      );
+    }
+
+    const stillHasValidToken = await this.ctx.userTokens.getLastValidToken({
+      type: 'password_reset',
+      userId: user.id,
+    });
+
+    if (stillHasValidToken) {
+      await this.emailQueue.sendResetPasswordEmail({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        expiredAt: stillHasValidToken.expired_at,
+        resetToken: stillHasValidToken.token,
+      });
+
+      return { success: true, message: 'Password reset email sent' };
+    } else {
+      const token = randomString(20, 'n');
+      const expiredAt = new Date();
+      expiredAt.setMinutes(expiredAt.getMinutes() + 10); // expires in 10 minutes
+
+      await this.ctx.userTokens.create({
+        user_id: user.id,
+        token,
+        type: 'password_reset',
+        expired_at: expiredAt,
+      });
+
+      await this.emailQueue.sendResetPasswordEmail({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        expiredAt: expiredAt,
+        resetToken: token,
+      });
+    }
+    return { success: true, message: 'Password reset email sent' };
+  }
+
+  async resetPassword({ token, password }: ResetPasswordDto) {
+    const resetCode = await this.ctx.userTokens.findValidToken({
+      token,
+      type: 'password_reset',
+    });
+
+    if (!resetCode) {
+      throw new NotFoundException('Invalid or expired verification code');
+    }
+
+    const passwordHash = await toHash(password);
+
+    await this.ctx.transaction(async () => {
+      await this.ctx.users.update({
+        id: resetCode.user_id,
+        password_hash: passwordHash,
+        status: 'active',
+      });
+      await this.ctx.userTokens.update({
+        id: resetCode.id,
+        used_at: new Date(),
+      });
+    });
+
+    return { success: true, message: 'Password updated, please login' };
+  }
+
+  private async userAccountIsConfirmed(user: AuthenticatedUser) {
+    if (user.status === 'pending_verification' && !user.email_verified_at) {
+      const verificationToken = await this.ctx.userTokens.getLastValidToken({
+        userId: user.id,
+        type: 'email_verification',
+      });
+
+      if (verificationToken) {
+        await this.emailQueue.sendVerificationEmail({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          verificationToken: verificationToken.token,
+        });
+
+        throw new BadRequestException(
+          'Email does not confirmed, please verify your email',
+          ErrorCode.VERIFICATION_ERROR
+        );
+      } else {
+        const token = randomString(20);
+        const verificationExpires = new Date();
+        verificationExpires.setHours(verificationExpires.getHours() + 24);
+        await this.ctx.userTokens.create({
+          token: token,
+          type: 'email_verification',
+          expired_at: verificationExpires,
+          user_id: user.id,
+        });
+
+        await this.emailQueue.sendVerificationEmail({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          verificationToken: token,
+        });
+
+        throw new BadRequestException(
+          'Email does not confirmed, please verify your email',
+          ErrorCode.VERIFICATION_ERROR
+        );
+      }
+    }
   }
 }
