@@ -1,3 +1,5 @@
+import 'fastify';
+
 import type {
   FastifyBaseLogger,
   FastifyInstance,
@@ -14,3 +16,11 @@ export type FastifyTypedInstance = FastifyInstance<
   FastifyBaseLogger,
   ZodTypeProvider
 >;
+
+declare module 'fastify' {
+  export interface FastifyRequest {
+    user: {
+      id: string;
+    };
+  }
+}

@@ -36,6 +36,17 @@ export class BadRequestException extends AppError {
     super(message, HTTP_STATUS.BAD_REQUEST, errorCode || ErrorCode.BAD_REQUEST);
   }
 }
+
+export class ConflictException extends AppError {
+  constructor(message = 'Conflict', errorCode?: ErrorCodeType) {
+    super(
+      message,
+      HTTP_STATUS.CONFLICT,
+      errorCode || ErrorCode.ACTION_NOT_ALLOWED
+    );
+  }
+}
+
 export class UnauthorizedException extends AppError {
   constructor(message = 'Unauthorized Access', errorCode?: ErrorCodeType) {
     super(

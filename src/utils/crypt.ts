@@ -92,3 +92,7 @@ export const genFingerprint = async (finger: FingerType) => {
 export const genApiKey = () => {
   return randomBytes(32).toString('hex');
 };
+
+export const generateSecret = () => {
+  return randomBytes(32).toString('hex');
+};

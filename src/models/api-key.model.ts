@@ -26,6 +26,7 @@ export interface CreateApiKey {
 }
 
 export interface UpdateApiKey extends Partial<CreateApiKey> {
+  id: string;
   last_used_at?: Date;
   usage_count?: number;
 }
@@ -41,4 +42,17 @@ export interface ApiKeyResponse {
   usage_count: number;
   created_at: Date;
   updated_at: Date | null;
+}
+
+export interface ListApiKeysByProjectIdArgs {
+  projectId: string;
+  status: ApiKeyStatus;
+}
+
+export interface IApiKeyRepository {
+  create(args: CreateApiKey): Promise<ApiKey>;
+  update(args: UpdateApiKey): Promise<void>;
+  softDelete(id: string): Promise<void>;
+  findById(id: string): Promise<ApiKey | null>;
+  listApiKeysByProjectId(projectId: string): Promise<ApiKeyResponse[]>;
 }

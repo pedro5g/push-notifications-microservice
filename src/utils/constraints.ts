@@ -7,6 +7,7 @@ export const ErrorCode = {
   AUTH_UNAUTHORIZED_ACCESS: 'AUTH_UNAUTHORIZED_ACCESS',
   AUTH_TOKEN_NOT_FOUND: 'AUTH_TOKEN_NOT_FOUND',
 
+  ACTION_NOT_ALLOWED: 'ACTION_NOT_ALLOWED',
   ACCESS_FORBIDDEN: 'ACCESS_FORBIDDEN',
   ACCESS_UNAUTHORIZED: 'ACCESS_UNAUTHORIZED',
   BAD_REQUEST: 'BAD_REQUEST',
@@ -19,6 +20,8 @@ export const ErrorCode = {
 
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   VERIFICATION_ERROR: 'VERIFICATION_ERROR',
+
+  MAX_LIMIT_ACHIEVED: 'MAX_LIMIT_ACHIEVED',
 } as const;
 
 export const HTTP_STATUS = {
@@ -52,6 +55,14 @@ export const ExitCode = {
   FAILURE: 1,
   SUCCESS: 0,
 } as const;
+
+export const RESOURCES = {
+  notifications: ['send', 'read', 'cancel', 'schedule', 'template'],
+  webhooks: ['create', 'read', 'update', 'delete', 'manage', 'logs'],
+  subscribers: ['read', 'create', 'update', 'delete', 'segment', 'export'],
+  analytics: ['read', 'export', 'advanced'],
+  project: ['read', 'update', 'delete', 'admin'],
+};
 
 export type ExitCodeType = keyof typeof ExitCode;
 export type HttpStatusCode = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];

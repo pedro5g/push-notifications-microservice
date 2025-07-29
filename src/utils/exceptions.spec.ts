@@ -2,6 +2,7 @@ import { ErrorCode, HTTP_STATUS } from './constraints';
 import {
   AppError,
   BadRequestException,
+  ConflictException,
   HttpException,
   InternalServerException,
   NotFoundException,
@@ -57,6 +58,14 @@ describe('[Exceptions] unit tests', () => {
     expect(sut.message).toStrictEqual('Bad Request');
     expect(sut.statusCode).toStrictEqual(HTTP_STATUS.BAD_REQUEST);
     expect(sut.errorCode).toStrictEqual(ErrorCode.BAD_REQUEST);
+  });
+
+  test('ConflictException', () => {
+    const sut: ConflictException = new ConflictException();
+
+    expect(sut.message).toStrictEqual('Conflict');
+    expect(sut.statusCode).toStrictEqual(HTTP_STATUS.CONFLICT);
+    expect(sut.errorCode).toStrictEqual(ErrorCode.ACTION_NOT_ALLOWED);
   });
 
   test('UnauthorizedException', () => {

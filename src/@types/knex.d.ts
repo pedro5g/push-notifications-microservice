@@ -11,6 +11,6 @@ declare module 'knex/types/tables' {
     user_settings: UserSetting;
     user_tokens: UserToken;
     projects: Project;
-    api_keys: ApiKey;
+    api_keys: Omit<ApiKey, 'permissions'> & { permissions: string };
   }
 }

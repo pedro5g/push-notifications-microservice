@@ -5,7 +5,7 @@ import { ManagerQueue } from '@/queue/manager.queue';
 import { ContextRepository } from '@/repositories/context.repository';
 import { AuthServices } from '@/services/auth.services';
 
-export class AuthModele {
+export class AuthModule {
   static bind(app: FastifyTypedInstance) {
     const context = ContextRepository.getInstance();
     const managerQueue = ManagerQueue.getInstance();

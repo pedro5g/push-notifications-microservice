@@ -13,7 +13,9 @@ import z from 'zod';
 import { env } from './config/env';
 import { globalErrorHandler } from './middlewares/global-error-handler';
 import { loggerRequester } from './middlewares/logger-requester';
-import { AuthModele } from './modules/auth.module';
+import { ApiKeyModule } from './modules/api-key.module';
+import { AuthModule } from './modules/auth.module';
+import { ProjectModule } from './modules/project.module';
 import { HTTP_STATUS } from './utils/constraints';
 
 export function buildApp(): FastifyInstance {
@@ -44,6 +46,17 @@ export function buildApp(): FastifyInstance {
           title: 'Push Notifications Microservice',
           description: 'API para gerenciar push notifications via webhooks',
           version: '1.0.0',
+        },
+        components: {
+          securitySchemes: {
+            Bearer: {
+              description:
+                'RS256 JWT signed by private key, with username in payload',
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
+          },
         },
       },
       transform: jsonSchemaTransform,
@@ -78,7 +91,9 @@ export function buildApp(): FastifyInstance {
     }
   );
 
-  app.register(AuthModele.bind, { prefix: env.API_PREFIX });
+  app.register(AuthModule.bind, { prefix: env.API_PREFIX });
+  app.register(ProjectModule.bind, { prefix: env.API_PREFIX });
+  app.register(ApiKeyModule.bind, { prefix: env.API_PREFIX });
 
   app.setNotFoundHandler(async (request, reply) => {
     return reply.status(HTTP_STATUS.NOT_FOUND).send({

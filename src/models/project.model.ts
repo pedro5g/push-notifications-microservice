@@ -30,7 +30,9 @@ export interface CreateProject {
   rate_limit_per_day?: number;
 }
 
-export interface UpdateProject extends Partial<CreateProject> {}
+export interface UpdateProject extends Omit<Partial<CreateProject>, 'user_id'> {
+  id: string;
+}
 
 export interface ProjectResponse {
   id: string;
@@ -41,4 +43,25 @@ export interface ProjectResponse {
   status: ProjectStatus;
   created_at: Date;
   updated_at: Date | null;
+}
+
+export interface ListProjectsByUserIdArgs {
+  userId: string;
+  status: ProjectStatus;
+}
+
+export interface CountProjectsArgs {
+  userId: string;
+  status: ProjectStatus;
+}
+
+export interface IProjectRepository {
+  create(args: CreateProject): Promise<Project>;
+  update(args: UpdateProject): Promise<void>;
+  softDelete(projectId: string): Promise<void>;
+  findById(projectId: string): Promise<Project | null>;
+  listProjectsByUserId(
+    args: ListProjectsByUserIdArgs
+  ): Promise<ProjectResponse[]>;
+  countProjects(args: CountProjectsArgs): Promise<number>;
 }
