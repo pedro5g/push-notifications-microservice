@@ -5,8 +5,9 @@ import type {
   IUserRepository,
   UpdateUser,
   User,
-} from '@/models/user.model';
-import { BaseRepository } from './base.repository';
+} from "@/models/user.model";
+import { BaseRepository } from "./base.repository";
+import { dateUtils } from "@/utils/date";
 
 export class UserRepository extends BaseRepository implements IUserRepository {
   async create({
@@ -15,16 +16,16 @@ export class UserRepository extends BaseRepository implements IUserRepository {
     password_hash,
     status,
   }: CreateUser): Promise<User> {
-    const [insertResponse] = await this.knex('users')
+    const [insertResponse] = await this.knex("users")
       .insert({
         name,
         email,
         password_hash,
         status,
       })
-      .returning('*');
+      .returning("*");
 
-    if (!insertResponse) throw new Error('Error on insert user');
+    if (!insertResponse) throw new Error("Error on insert user");
 
     return insertResponse;
   }
@@ -38,7 +39,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
     status,
     email,
   }: UpdateUser): Promise<void> {
-    await this.knex('users')
+    await this.knex("users")
       .update({
         name,
         email_verified_at,
@@ -53,13 +54,13 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 
   async softDelete(userId: string): Promise<void> {
     await this.knex.transaction(async (trx) => {
-      await trx('users')
+      await trx("users")
         .update({
-          status: 'inactive',
-          deleted_at: new Date(),
+          status: "inactive",
+          deleted_at: dateUtils.now(),
         })
         .where({ id: userId });
-      await trx('user_settings').delete().where({
+      await trx("user_settings").delete().where({
         user_id: userId,
       });
     });
@@ -75,7 +76,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
     email: string,
     ...select: K[]
   ): Promise<Pick<User, K> | null> {
-    const user = await this.knex('users')
+    const user = await this.knex("users")
       .select(this.parseSelect<User>(...select))
       .where({
         email,
@@ -93,7 +94,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
     userId: string,
     ...select: K[]
   ): Promise<Pick<User, K> | null> {
-    const user = await this.knex('users')
+    const user = await this.knex("users")
       .select(this.parseSelect<User>(...select))
       .where({
         id: userId,
@@ -106,7 +107,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
   async getUserContext(
     where: GetUserContextWhere
   ): Promise<AuthenticatedUser | null> {
-    const _where = 'id' in where ? where.id : where.email;
+    const _where = "id" in where ? where.id : where.email;
     const result = await this.knex.raw(
       `
     SELECT
@@ -136,7 +137,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
       END AS settings
     FROM users
     LEFT JOIN user_settings ON user_settings.user_id = users.id
-    WHERE users.${'id' in where ? 'id' : 'email'} = ?
+    WHERE users.${"id" in where ? "id" : "email"} = ?
   `,
       [_where]
     );

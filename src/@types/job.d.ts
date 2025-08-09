@@ -8,7 +8,7 @@ export interface JobOptions {
   delay?: number;
   attempts?: number;
   backoff?: {
-    type: 'exponential' | 'fixed';
+    type: "exponential" | "fixed";
     delay: number;
   };
 }
@@ -25,7 +25,7 @@ export interface QueueConfig {
   defaultJobOptions?: {
     attempts?: number;
     backoff?: {
-      type: 'exponential' | 'fixed';
+      type: "exponential" | "fixed";
       delay: number;
     };
     removeOnComplete?: number;
@@ -67,7 +67,7 @@ export interface SendResetPasswordEmailJobData extends JobData {
   email: string;
   name: string;
   resetToken: string;
-  expiredAt: Date;
+  expiredAt: Date | string;
 }
 
 export interface SendWelcomeEmailJobData extends JobData {

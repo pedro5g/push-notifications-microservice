@@ -1,10 +1,10 @@
-import type { UserSettingResponse } from './user-setting.model';
+import type { UserSettingResponse } from "./user-setting.model";
 
 export type UserStatus =
-  | 'active'
-  | 'inactive'
-  | 'suspended'
-  | 'pending_verification';
+  | "active"
+  | "inactive"
+  | "suspended"
+  | "pending_verification";
 
 export interface User {
   id: string;
@@ -17,6 +17,19 @@ export interface User {
   created_at: Date;
   updated_at: Date | null;
   deleted_at: Date | null;
+}
+
+export interface UserInsert {
+  id?: string;
+  name: string;
+  email: string;
+  password_hash: string;
+  status?: UserStatus;
+  email_verified_at?: string | null;
+  last_login_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+  deleted_at?: string | null;
 }
 
 export interface CreateUser {
@@ -32,9 +45,9 @@ export interface UpdateUser {
   email?: string;
   password_hash?: string;
   status?: UserStatus;
-  email_verified_at?: Date;
-  last_login_at?: Date;
-  deleted_at?: Date;
+  email_verified_at?: string | string;
+  last_login_at?: string | string;
+  deleted_at?: string | string;
 }
 
 export interface UserResponse {
@@ -48,7 +61,7 @@ export interface UserResponse {
   updated_at: Date | null;
 }
 
-export interface AuthenticatedUser extends Omit<User, 'deleted_at'> {
+export interface AuthenticatedUser extends Omit<User, "deleted_at"> {
   settings: UserSettingResponse;
 }
 

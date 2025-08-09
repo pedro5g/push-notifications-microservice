@@ -1,4 +1,4 @@
-export type ApiKeyStatus = 'active' | 'inactive' | 'revoked';
+export type ApiKeyStatus = "active" | "inactive" | "revoked";
 
 export interface ApiKey {
   id: string;
@@ -15,6 +15,21 @@ export interface ApiKey {
   updated_at: Date | null;
 }
 
+export interface ApiKeyInsert {
+  id?: string;
+  project_id: string;
+  name: string;
+  key_hash: string;
+  key_preview: string;
+  permissions: string;
+  status?: ApiKeyStatus;
+  expires_at?: string | null;
+  last_used_at?: string | null;
+  usage_count?: number;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
 export interface CreateApiKey {
   project_id: string;
   name: string;
@@ -22,12 +37,12 @@ export interface CreateApiKey {
   key_preview: string;
   permissions?: string[];
   status?: ApiKeyStatus;
-  expires_at?: Date;
+  expires_at?: string;
 }
 
 export interface UpdateApiKey extends Partial<CreateApiKey> {
   id: string;
-  last_used_at?: Date;
+  last_used_at?: string;
   usage_count?: number;
 }
 

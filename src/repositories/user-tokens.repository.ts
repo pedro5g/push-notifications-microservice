@@ -2,14 +2,15 @@ import type {
   CountTokenArgs,
   CountTokenWithIntervalArgs,
   CreateUserToken,
+  DeleteManyArgs,
   FindByTokenArgs,
   FindValidTokenArgs,
   GetLastValidTokenArgs,
   IUserTokenRepository,
   UpdateUserToken,
   UserToken,
-} from '@/models/user-tokens.model';
-import { BaseRepository } from './base.repository';
+} from "@/models/user-tokens.model";
+import { BaseRepository } from "./base.repository";
 
 export class UserTokensRepository
   extends BaseRepository
@@ -21,7 +22,7 @@ export class UserTokensRepository
     type,
     expired_at,
   }: CreateUserToken): Promise<void> {
-    await this.knex('user_tokens').insert({
+    await this.knex("user_tokens").insert({
       user_id,
       token,
       type,
@@ -30,7 +31,7 @@ export class UserTokensRepository
   }
 
   async update({ id, used_at }: UpdateUserToken): Promise<void> {
-    await this.knex('user_tokens')
+    await this.knex("user_tokens")
       .where({
         id,
       })
@@ -38,13 +39,23 @@ export class UserTokensRepository
   }
 
   async delete(id: string): Promise<void> {
-    await this.knex('user_tokens').delete().where({
+    await this.knex("user_tokens").delete().where({
       id,
     });
   }
 
+  async deleteMany({ userId, type }: DeleteManyArgs): Promise<void> {
+    await this.knex("user_tokens")
+      .delete()
+      .where({
+        user_id: userId,
+        type,
+      })
+      .whereNull("used_at");
+  }
+
   async findById(id: string): Promise<UserToken | null> {
-    const token = await this.knex('user_tokens').where({ id }).first();
+    const token = await this.knex("user_tokens").where({ id }).first();
     return token ?? null;
   }
 
@@ -52,7 +63,7 @@ export class UserTokensRepository
     token,
     type,
   }: FindByTokenArgs): Promise<UserToken | null> {
-    const userToken = await this.knex('user_tokens')
+    const userToken = await this.knex("user_tokens")
       .where({
         token,
         type,
@@ -62,7 +73,7 @@ export class UserTokensRepository
   }
 
   async findManyByUserId(userId: string): Promise<UserToken[]> {
-    const tokes = await this.knex('user_tokens').where({
+    const tokes = await this.knex("user_tokens").where({
       user_id: userId,
     });
 
@@ -73,27 +84,25 @@ export class UserTokensRepository
     token,
     type,
   }: FindValidTokenArgs): Promise<UserToken | null> {
-    const userToken = await this.knex('user_tokens')
-      .where({
-        token,
-        type,
-      })
-      .andWhere('expired_at', '<', this.knex.fn.now())
-      .andWhere({ used_at: null })
+    const userToken = await this.knex("user_tokens")
+      .where({ token, type })
+      .where("expired_at", ">", this.knex.fn.now())
+      .whereNull("used_at")
       .first();
 
     return userToken ?? null;
   }
+
   async getLastValidToken({
     userId,
     type,
   }: GetLastValidTokenArgs): Promise<UserToken | null> {
-    const token = await this.knex('user_tokens')
+    const token = await this.knex("user_tokens")
       .where({
         user_id: userId,
         type,
       })
-      .andWhere('expired_at', '<', this.knex.fn.now())
+      .andWhere("expired_at", ">", this.knex.fn.now())
       .andWhere({ used_at: null })
       .first();
 
@@ -101,7 +110,7 @@ export class UserTokensRepository
   }
 
   async countTokens({ userId, type }: CountTokenArgs): Promise<number> {
-    const count = await this.knex('user_tokens')
+    const count = await this.knex("user_tokens")
       .where({
         user_id: userId,
         type,
@@ -115,16 +124,16 @@ export class UserTokensRepository
   async countTokensWithInterval({
     userId,
     type,
-    interval = '1 hour',
+    interval = "1 hour",
   }: CountTokenWithIntervalArgs): Promise<number> {
-    const count = await this.knex('user_tokens')
+    const count = await this.knex("user_tokens")
       .where({
         user_id: userId,
         type,
       })
       .andWhere(
-        'created_at',
-        '>',
+        "created_at",
+        ">",
         this.knex.raw(`now() - interval '${interval}'`)
       )
       .count()

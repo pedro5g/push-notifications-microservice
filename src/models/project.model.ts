@@ -1,4 +1,4 @@
-export type ProjectStatus = 'active' | 'inactive' | 'suspended';
+export type ProjectStatus = "active" | "inactive" | "suspended";
 
 export interface Project {
   id: string;
@@ -17,6 +17,23 @@ export interface Project {
   deleted_at: Date | null;
 }
 
+export interface ProjectInsert {
+  id?: string;
+  user_id: string;
+  project_name: string;
+  description?: string | null;
+  domain?: string | null;
+  icon?: string | null;
+  status?: ProjectStatus;
+  webhook_secret: string;
+  rate_limit_per_minute?: number;
+  rate_limit_per_hour?: number;
+  rate_limit_per_day?: number;
+  created_at?: string;
+  updated_at?: string | null;
+  deleted_at?: string | null;
+}
+
 export interface CreateProject {
   user_id: string;
   project_name: string;
@@ -30,7 +47,7 @@ export interface CreateProject {
   rate_limit_per_day?: number;
 }
 
-export interface UpdateProject extends Omit<Partial<CreateProject>, 'user_id'> {
+export interface UpdateProject extends Omit<Partial<CreateProject>, "user_id"> {
   id: string;
 }
 

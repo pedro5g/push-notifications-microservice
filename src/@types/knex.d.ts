@@ -1,16 +1,19 @@
-import { Knex } from 'knex';
-import type { ApiKey } from '@/models/api-key.model';
-import type { Project } from '@/models/project.model';
-import type { User } from '@/models/user.model';
-import type { UserSetting } from '@/models/user-setting.model';
-import type { UserToken } from '@/models/user-tokens.model';
+import { Knex } from "knex";
+import type { ApiKey, ApiKeyInsert } from "@/models/api-key.model";
+import type { Project, ProjectInsert } from "@/models/project.model";
+import type { User, UserInsert } from "@/models/user.model";
+import type {
+  UserSetting,
+  UserSettingInsert,
+} from "@/models/user-setting.model";
+import type { UserToken, UserTokenInset } from "@/models/user-tokens.model";
 
-declare module 'knex/types/tables' {
+declare module "knex/types/tables" {
   interface Tables {
-    users: User;
-    user_settings: UserSetting;
-    user_tokens: UserToken;
-    projects: Project;
-    api_keys: Omit<ApiKey, 'permissions'> & { permissions: string };
+    users: Knex.CompositeTableType<User, UserInsert>;
+    user_settings: Knex.CompositeTableType<UserSetting, UserSettingInset>;
+    user_tokens: Knex.CompositeTableType<UserToken, UserTokenInset>;
+    projects: Knex.CompositeTableType<Project, ProjectInsert>;
+    api_keys: Knex.CompositeTableType<ApiKey, ApiKeyInsert>;
   }
 }

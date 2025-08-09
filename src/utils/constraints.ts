@@ -1,27 +1,28 @@
 export const ErrorCode = {
-  AUTH_EMAIL_ALREADY_EXISTS: 'AUTH_EMAIL_ALREADY_EXISTS',
-  AUTH_INVALID_TOKEN: 'AUTH_INVALID_TOKEN',
-  AUTH_USER_NOT_FOUND: 'AUTH_USER_NOT_FOUND',
-  AUTH_NOT_FOUND: 'AUTH_NOT_FOUND',
-  AUTH_TOO_MANY_ATTEMPTS: 'AUTH_TOO_MANY_ATTEMPTS',
-  AUTH_UNAUTHORIZED_ACCESS: 'AUTH_UNAUTHORIZED_ACCESS',
-  AUTH_TOKEN_NOT_FOUND: 'AUTH_TOKEN_NOT_FOUND',
+  AUTH_EMAIL_ALREADY_EXISTS: "AUTH_EMAIL_ALREADY_EXISTS",
+  AUTH_INVALID_TOKEN: "AUTH_INVALID_TOKEN",
+  AUTH_USER_NOT_FOUND: "AUTH_USER_NOT_FOUND",
+  AUTH_NOT_FOUND: "AUTH_NOT_FOUND",
+  AUTH_TOO_MANY_ATTEMPTS: "AUTH_TOO_MANY_ATTEMPTS",
+  AUTH_UNAUTHORIZED_ACCESS: "AUTH_UNAUTHORIZED_ACCESS",
+  AUTH_TOKEN_NOT_FOUND: "AUTH_TOKEN_NOT_FOUND",
+  AUTH_INVALID_CREDENTIALS: "AUTH_INVALID_CREDENTIALS",
 
-  ACTION_NOT_ALLOWED: 'ACTION_NOT_ALLOWED',
-  ACCESS_FORBIDDEN: 'ACCESS_FORBIDDEN',
-  ACCESS_UNAUTHORIZED: 'ACCESS_UNAUTHORIZED',
-  BAD_REQUEST: 'BAD_REQUEST',
-  EMAIL_ALREADY_REGISTERED: 'EMAIL_ALREADY_REGISTERED',
-  TAXID_ALREADY_REGISTERED: 'TAXID_ALREADY_REGISTERED',
-  ACCOUNT_NOT_CONFIRMED: 'ACCOUNT_NOT_CONFIRMED',
+  ACTION_NOT_ALLOWED: "ACTION_NOT_ALLOWED",
+  ACCESS_FORBIDDEN: "ACCESS_FORBIDDEN",
+  ACCESS_UNAUTHORIZED: "ACCESS_UNAUTHORIZED",
+  BAD_REQUEST: "BAD_REQUEST",
+  EMAIL_ALREADY_REGISTERED: "EMAIL_ALREADY_REGISTERED",
+  TAXID_ALREADY_REGISTERED: "TAXID_ALREADY_REGISTERED",
+  ACCOUNT_NOT_CONFIRMED: "ACCOUNT_NOT_CONFIRMED",
 
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
 
-  INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
-  VERIFICATION_ERROR: 'VERIFICATION_ERROR',
+  INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+  VERIFICATION_ERROR: "VERIFICATION_ERROR",
 
-  MAX_LIMIT_ACHIEVED: 'MAX_LIMIT_ACHIEVED',
+  MAX_LIMIT_ACHIEVED: "MAX_LIMIT_ACHIEVED",
 } as const;
 
 export const HTTP_STATUS = {
@@ -48,7 +49,7 @@ export const HTTP_STATUS = {
 } as const;
 
 export const QUEUE_NAMES = {
-  EMAIL_QUEUE: 'email-queue',
+  EMAIL_QUEUE: "email-queue",
 } as const;
 
 export const ExitCode = {
@@ -57,11 +58,11 @@ export const ExitCode = {
 } as const;
 
 export const RESOURCES = {
-  notifications: ['send', 'read', 'cancel', 'schedule', 'template'],
-  webhooks: ['create', 'read', 'update', 'delete', 'manage', 'logs'],
-  subscribers: ['read', 'create', 'update', 'delete', 'segment', 'export'],
-  analytics: ['read', 'export', 'advanced'],
-  project: ['read', 'update', 'delete', 'admin'],
+  notifications: ["send", "read", "cancel", "schedule", "template"],
+  webhooks: ["create", "read", "update", "delete", "manage", "logs"],
+  subscribers: ["read", "create", "update", "delete", "segment", "export"],
+  analytics: ["read", "export", "advanced"],
+  project: ["read", "update", "delete", "admin"],
 };
 
 export type ExitCodeType = keyof typeof ExitCode;

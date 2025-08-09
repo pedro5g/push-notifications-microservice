@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import { HTTP_STATUS } from '@/utils/constraints';
+import { z } from "zod";
+import { HTTP_STATUS } from "@/utils/constraints";
 import {
   badRequestSchema,
   okSchema,
   validateErrorSchema,
-} from './utils.validators';
+} from "./utils.validators";
 
 export const registerUserBodySchema = z.object({
   name: z.string().min(3).max(255),
@@ -34,10 +34,10 @@ export const loginResponseSchema = {
       name: z.string(),
       email: z.email(),
       status: z.enum([
-        'active',
-        'inactive',
-        'suspended',
-        'pending_verification',
+        "active",
+        "inactive",
+        "suspended",
+        "pending_verification",
       ]),
       email_verified_at: z.date().nullable(),
       last_login_at: z.date().nullable(),
@@ -72,7 +72,9 @@ export const emailVerifyQuerySchema = z.object({
 });
 
 export const emailVerifyResponseSchema = {
-  [HTTP_STATUS.OK]: okSchema,
+  [HTTP_STATUS.REDIRECT]: okSchema.meta({
+    description: "Redirect to welcome page in frontend ui",
+  }),
   [HTTP_STATUS.BAD_REQUEST]: badRequestSchema,
 };
 

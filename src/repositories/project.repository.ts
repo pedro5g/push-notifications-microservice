@@ -6,8 +6,9 @@ import type {
   Project,
   ProjectResponse,
   UpdateProject,
-} from '@/models/project.model';
-import { BaseRepository } from './base.repository';
+} from "@/models/project.model";
+import { BaseRepository } from "./base.repository";
+import { dateUtils } from "@/utils/date";
 
 export class ProjectRepository
   extends BaseRepository
@@ -25,7 +26,7 @@ export class ProjectRepository
     rate_limit_per_minute,
     status,
   }: CreateProject): Promise<Project> {
-    const [project] = await this.knex('projects')
+    const [project] = await this.knex("projects")
       .insert({
         project_name,
         user_id,
@@ -38,10 +39,10 @@ export class ProjectRepository
         rate_limit_per_minute,
         status,
       })
-      .returning('*');
+      .returning("*");
 
     if (!project) {
-      throw new Error('Error on insert project');
+      throw new Error("Error on insert project");
     }
 
     return project;
@@ -59,7 +60,7 @@ export class ProjectRepository
     status,
     webhook_secret,
   }: UpdateProject): Promise<void> {
-    await this.knex('projects')
+    await this.knex("projects")
       .update({
         description,
         domain,
@@ -75,16 +76,16 @@ export class ProjectRepository
   }
 
   async softDelete(projectId: string): Promise<void> {
-    await this.knex('projects')
+    await this.knex("projects")
       .update({
-        status: 'inactive',
-        deleted_at: new Date(),
+        status: "inactive",
+        deleted_at: dateUtils.now(),
       })
       .where({ id: projectId });
   }
 
   async findById(projectId: string): Promise<Project | null> {
-    const project = await this.knex('projects')
+    const project = await this.knex("projects")
       .where({
         id: projectId,
       })
@@ -97,25 +98,25 @@ export class ProjectRepository
     userId,
     status,
   }: ListProjectsByUserIdArgs): Promise<ProjectResponse[]> {
-    const projects = await this.knex('projects')
+    const projects = await this.knex("projects")
       .select(
-        'id',
-        'project_name',
-        'description',
-        'domain',
-        'icon',
-        'status',
-        'created_at',
-        'updated_at'
+        "id",
+        "project_name",
+        "description",
+        "domain",
+        "icon",
+        "status",
+        "created_at",
+        "updated_at"
       )
       .where({ user_id: userId, status })
-      .orderBy('created_at', 'desc');
+      .orderBy("created_at", "desc");
 
     return projects;
   }
 
   async countProjects({ userId, status }: CountProjectsArgs): Promise<number> {
-    const count = await this.knex('projects')
+    const count = await this.knex("projects")
       .where({
         user_id: userId,
         status,

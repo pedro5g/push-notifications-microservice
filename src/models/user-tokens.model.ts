@@ -1,4 +1,4 @@
-export type UserTokenTypes = 'email_verification' | 'password_reset';
+export type UserTokenTypes = "email_verification" | "password_reset";
 
 export interface UserToken {
   id: string;
@@ -10,16 +10,26 @@ export interface UserToken {
   created_at: Date;
 }
 
+export interface UserTokenInset {
+  id?: string;
+  user_id: string;
+  type: UserTokenTypes;
+  token: string;
+  expired_at: string;
+  used_at?: string | null;
+  created_at?: string;
+}
+
 export interface CreateUserToken {
   user_id: string;
   type: UserTokenTypes;
   token: string;
-  expired_at: Date;
+  expired_at: string;
 }
 
 export interface UpdateUserToken {
   id: string;
-  used_at: Date;
+  used_at: string;
 }
 
 export interface FindByTokenArgs {
@@ -59,10 +69,16 @@ export interface CountTokenWithIntervalArgs {
   interval: IntervalSyntax;
 }
 
+export interface DeleteManyArgs {
+  userId: string;
+  type: UserTokenTypes;
+}
+
 export interface IUserTokenRepository {
   create(args: CreateUserToken): Promise<void>;
   update(args: UpdateUserToken): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteMany(args: DeleteManyArgs): Promise<void>;
   findById(id: string): Promise<UserToken | null>;
   findByToken(args: FindByTokenArgs): Promise<UserToken | null>;
   findValidToken(args: FindValidTokenArgs): Promise<UserToken | null>;

@@ -1,14 +1,15 @@
-import type { AuthenticatedUser } from '@/models/user.model';
-import type { EmailQueue } from '@/queue/email.queue';
-import type { ContextRepository } from '@/repositories/context.repository';
-import { ErrorCode, HTTP_STATUS } from '@/utils/constraints';
-import { compareHashes, genFingerprint, toHash } from '@/utils/crypt';
+import type { AuthenticatedUser } from "@/models/user.model";
+import type { EmailQueue } from "@/queue/email.queue";
+import type { ContextRepository } from "@/repositories/context.repository";
+import { ErrorCode, HTTP_STATUS } from "@/utils/constraints";
+import { compareHashes, genFingerprint, toHash } from "@/utils/crypt";
+import { dateUtils } from "@/utils/date";
 import {
   BadRequestException,
   HttpException,
   NotFoundException,
   UnauthorizedException,
-} from '@/utils/exceptions';
+} from "@/utils/exceptions";
 import {
   type AccessTokenPayload,
   accessTokenConfig,
@@ -16,9 +17,9 @@ import {
   refreshTokenConfig,
   signToken,
   verifyToken,
-} from '@/utils/jwt';
-import { Logger } from '@/utils/logger';
-import { randomString } from '@/utils/random-string';
+} from "@/utils/jwt";
+import { Logger } from "@/utils/logger";
+import { randomString } from "@/utils/random-string";
 
 interface RegisterUserDto {
   name: string;
@@ -63,7 +64,7 @@ export class AuthServices {
 
     if (userExists) {
       throw new BadRequestException(
-        'User already registered with this email',
+        "User already registered with this email",
         ErrorCode.EMAIL_ALREADY_REGISTERED
       );
     }
@@ -78,11 +79,10 @@ export class AuthServices {
       });
 
       const _token = randomString(20);
-      const verificationExpires = new Date();
-      verificationExpires.setHours(verificationExpires.getHours() + 24); // 1 day
+      const verificationExpires = dateUtils.addDays(1);
       await this.ctx.userTokens.create({
         token: _token,
-        type: 'email_verification',
+        type: "email_verification",
         expired_at: verificationExpires,
         user_id: user.id,
       });
@@ -103,19 +103,19 @@ export class AuthServices {
     return {
       success: true,
       message:
-        'User registered successfully. Please check your email to verify your account.',
+        "User registered successfully. Please check your email to verify your account.",
     };
   }
 
   async confirmAccount({ token }: ConfirmAccountDto) {
     const confirmationToken = await this.ctx.userTokens.findValidToken({
       token,
-      type: 'email_verification',
+      type: "email_verification",
     });
 
     if (!confirmationToken) {
       throw new BadRequestException(
-        'Invalid or expired verification code, please try to login',
+        "Invalid or expired verification code, please try to login",
         ErrorCode.VERIFICATION_ERROR
       );
     }
@@ -123,8 +123,8 @@ export class AuthServices {
     await this.ctx.transaction(async () => {
       await this.ctx.users.update({
         id: confirmationToken.user_id,
-        status: 'active',
-        email_verified_at: new Date(),
+        status: "active",
+        email_verified_at: dateUtils.now(),
       });
       await this.ctx.userSettings.create({
         user_id: confirmationToken.user_id,
@@ -134,7 +134,7 @@ export class AuthServices {
 
     return {
       success: true,
-      message: 'Account confirmed successfully',
+      message: "Account confirmed successfully",
     };
   }
 
@@ -142,7 +142,10 @@ export class AuthServices {
     const user = await this.ctx.users.getUserContext({ email });
 
     if (!user) {
-      throw new BadRequestException('Invalid password or email');
+      throw new BadRequestException(
+        "Invalid password or email",
+        ErrorCode.AUTH_INVALID_CREDENTIALS
+      );
     }
 
     await this.userAccountIsConfirmed(user);
@@ -150,10 +153,16 @@ export class AuthServices {
     const isMatch = await compareHashes(user.password_hash, password);
 
     if (!isMatch) {
-      throw new BadRequestException('Invalid password or email');
+      throw new BadRequestException(
+        "Invalid password or email",
+        ErrorCode.AUTH_INVALID_CREDENTIALS
+      );
     }
 
-    await this.ctx.users.update({ id: user.id, last_login_at: new Date() });
+    await this.ctx.users.update({
+      id: user.id,
+      last_login_at: dateUtils.now(),
+    });
 
     const accessToken = signToken<AccessTokenPayload>(
       {
@@ -195,7 +204,7 @@ export class AuthServices {
 
     if (!payload) {
       throw new UnauthorizedException(
-        'Invalid refresh token',
+        "Invalid refresh token",
         ErrorCode.AUTH_INVALID_TOKEN
       );
     }
@@ -208,7 +217,7 @@ export class AuthServices {
     if (!isMatch) {
       this.logger.warn("Fingerprint does'nt match", `${ip}-${userAgent}`);
       throw new UnauthorizedException(
-        'Invalid refresh token',
+        "Invalid refresh token",
         ErrorCode.AUTH_INVALID_TOKEN
       );
     }
@@ -217,7 +226,7 @@ export class AuthServices {
 
     if (!user) {
       throw new UnauthorizedException(
-        'Invalid refresh token',
+        "Invalid refresh token",
         ErrorCode.AUTH_INVALID_TOKEN
       );
     }
@@ -246,26 +255,26 @@ export class AuthServices {
     const user = await this.ctx.users.findByEmail(email);
 
     if (!user) {
-      throw new NotFoundException('Account not found');
+      throw new NotFoundException("Account not found");
     }
     const MAX_ATTEMPTS = 3;
 
     const count = await this.ctx.userTokens.countTokensWithInterval({
       userId: user.id,
-      type: 'password_reset',
-      interval: '1 hour',
+      type: "password_reset",
+      interval: "1 hour",
     });
 
     if (count >= MAX_ATTEMPTS) {
       throw new HttpException(
-        'Too many request, try again later',
+        "Too many request, try again later",
         HTTP_STATUS.TOO_MANY_REQUESTS,
         ErrorCode.AUTH_TOO_MANY_ATTEMPTS
       );
     }
 
     const stillHasValidToken = await this.ctx.userTokens.getLastValidToken({
-      type: 'password_reset',
+      type: "password_reset",
       userId: user.id,
     });
 
@@ -278,16 +287,15 @@ export class AuthServices {
         resetToken: stillHasValidToken.token,
       });
 
-      return { success: true, message: 'Password reset email sent' };
+      return { success: true, message: "Password reset email sent" };
     } else {
-      const token = randomString(20, 'n');
-      const expiredAt = new Date();
-      expiredAt.setMinutes(expiredAt.getMinutes() + 10); // expires in 10 minutes
+      const token = randomString(8);
+      const expiredAt = dateUtils.addMinutes(10);
 
       await this.ctx.userTokens.create({
         user_id: user.id,
         token,
-        type: 'password_reset',
+        type: "password_reset",
         expired_at: expiredAt,
       });
 
@@ -299,17 +307,17 @@ export class AuthServices {
         resetToken: token,
       });
     }
-    return { success: true, message: 'Password reset email sent' };
+    return { success: true, message: "Password reset email sent" };
   }
 
   async resetPassword({ token, password }: ResetPasswordDto) {
     const resetCode = await this.ctx.userTokens.findValidToken({
       token,
-      type: 'password_reset',
+      type: "password_reset",
     });
 
     if (!resetCode) {
-      throw new NotFoundException('Invalid or expired verification code');
+      throw new NotFoundException("Invalid or expired verification code");
     }
 
     const passwordHash = await toHash(password);
@@ -318,22 +326,26 @@ export class AuthServices {
       await this.ctx.users.update({
         id: resetCode.user_id,
         password_hash: passwordHash,
-        status: 'active',
+        status: "active",
       });
       await this.ctx.userTokens.update({
         id: resetCode.id,
-        used_at: new Date(),
+        used_at: dateUtils.now(),
+      });
+      await this.ctx.userTokens.deleteMany({
+        userId: resetCode.user_id,
+        type: "password_reset",
       });
     });
 
-    return { success: true, message: 'Password updated, please login' };
+    return { success: true, message: "Password updated, please login" };
   }
 
   private async userAccountIsConfirmed(user: AuthenticatedUser) {
-    if (user.status === 'pending_verification' && !user.email_verified_at) {
+    if (user.status === "pending_verification" && !user.email_verified_at) {
       const verificationToken = await this.ctx.userTokens.getLastValidToken({
         userId: user.id,
-        type: 'email_verification',
+        type: "email_verification",
       });
 
       if (verificationToken) {
@@ -345,16 +357,15 @@ export class AuthServices {
         });
 
         throw new BadRequestException(
-          'Email does not confirmed, please verify your email',
+          "Email does not confirmed, please verify your email",
           ErrorCode.VERIFICATION_ERROR
         );
       } else {
         const token = randomString(20);
-        const verificationExpires = new Date();
-        verificationExpires.setHours(verificationExpires.getHours() + 24);
+        const verificationExpires = dateUtils.addDays(1);
         await this.ctx.userTokens.create({
           token: token,
-          type: 'email_verification',
+          type: "email_verification",
           expired_at: verificationExpires,
           user_id: user.id,
         });
@@ -367,7 +378,7 @@ export class AuthServices {
         });
 
         throw new BadRequestException(
-          'Email does not confirmed, please verify your email',
+          "Email does not confirmed, please verify your email",
           ErrorCode.VERIFICATION_ERROR
         );
       }

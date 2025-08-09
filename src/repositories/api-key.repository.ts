@@ -4,8 +4,8 @@ import type {
   CreateApiKey,
   IApiKeyRepository,
   UpdateApiKey,
-} from '@/models/api-key.model';
-import { BaseRepository } from './base.repository';
+} from "@/models/api-key.model";
+import { BaseRepository } from "./base.repository";
 
 export class ApiKeyRepository
   extends BaseRepository
@@ -20,7 +20,7 @@ export class ApiKeyRepository
     permissions,
     expires_at,
   }: CreateApiKey): Promise<ApiKey> {
-    const [apiKey] = await this.knex('api_keys')
+    const [apiKey] = await this.knex("api_keys")
       .insert({
         name,
         project_id,
@@ -30,13 +30,13 @@ export class ApiKeyRepository
         permissions: JSON.stringify(permissions),
         expires_at,
       })
-      .returning('*');
+      .returning("*");
 
     if (!apiKey) {
-      throw new Error('Error on insert api_key');
+      throw new Error("Error on insert api_key");
     }
 
-    return apiKey as unknown as ApiKey;
+    return apiKey;
   }
 
   async update({
@@ -51,7 +51,7 @@ export class ApiKeyRepository
     usage_count,
     last_used_at,
   }: UpdateApiKey): Promise<void> {
-    await this.knex('api_keys')
+    await this.knex("api_keys")
       .update({
         name,
         project_id,
@@ -66,41 +66,41 @@ export class ApiKeyRepository
       .where({ id });
   }
   async softDelete(id: string): Promise<void> {
-    await this.knex('api_keys')
+    await this.knex("api_keys")
       .update({
-        status: 'inactive',
+        status: "inactive",
       })
       .where({ id });
   }
 
   async findById(id: string): Promise<ApiKey | null> {
-    const apiKey = await this.knex('api_keys')
+    const apiKey = await this.knex("api_keys")
       .where({
         id,
       })
       .first();
     if (!apiKey) return null;
 
-    return apiKey as unknown as ApiKey;
+    return apiKey;
   }
 
   async listApiKeysByProjectId(projectId: string): Promise<ApiKeyResponse[]> {
-    const apiKeys = await this.knex('api_keys')
+    const apiKeys = await this.knex("api_keys")
       .select(
-        'id',
-        'name',
-        'key_preview',
-        'permissions',
-        'status',
-        'expires_at',
-        'last_used_at',
-        'usage_count',
-        'created_at',
-        'updated_at'
+        "id",
+        "name",
+        "key_preview",
+        "permissions",
+        "status",
+        "expires_at",
+        "last_used_at",
+        "usage_count",
+        "created_at",
+        "updated_at"
       )
       .where({ project_id: projectId })
-      .orderBy('created_at', 'desc');
+      .orderBy("created_at", "desc");
 
-    return apiKeys as unknown as ApiKey[];
+    return apiKeys;
   }
 }
