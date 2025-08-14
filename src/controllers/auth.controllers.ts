@@ -83,18 +83,19 @@ export function AuthControllers(authService: AuthServices) {
       },
       async (request, reply) => {
         const { email, password } = request.body;
-        const { user, accessToken, refreshToken } = await authService.login({
-          email,
-          password,
-          ip: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-        });
+        const { user, accessToken, refreshToken, expiresIn } =
+          await authService.login({
+            email,
+            password,
+          });
 
         return reply.status(HTTP_STATUS.OK).send({
           ok: true,
+          message: "login successfully",
           user,
           accessToken,
           refreshToken,
+          expiresIn,
         });
       }
     );
@@ -113,17 +114,17 @@ export function AuthControllers(authService: AuthServices) {
       },
       async (request, reply) => {
         const { refreshToken } = request.body;
-        const { accessToken, newRefreshToken } = await authService.refresh({
-          refreshToken,
-          ip: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-        });
+        const { accessToken, newRefreshToken, expiresIn } =
+          await authService.refresh({
+            refreshToken,
+          });
 
         return reply.status(HTTP_STATUS.OK).send({
           ok: true,
           message: "User session revalidate successfully",
           accessToken,
           refreshToken: newRefreshToken,
+          expiresIn,
         });
       }
     );

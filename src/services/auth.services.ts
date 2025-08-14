@@ -2,7 +2,7 @@ import type { AuthenticatedUser } from "@/models/user.model";
 import type { EmailQueue } from "@/queue/email.queue";
 import type { ContextRepository } from "@/repositories/context.repository";
 import { ErrorCode, HTTP_STATUS } from "@/utils/constraints";
-import { compareHashes, genFingerprint, toHash } from "@/utils/crypt";
+import { compareHashes, toHash } from "@/utils/crypt";
 import { dateUtils } from "@/utils/date";
 import {
   BadRequestException,
@@ -30,8 +30,6 @@ interface RegisterUserDto {
 interface LoginDto {
   email: string;
   password: string;
-  ip: string;
-  userAgent: string;
 }
 
 interface ConfirmAccountDto {
@@ -39,8 +37,6 @@ interface ConfirmAccountDto {
 }
 interface RefreshDto {
   refreshToken: string;
-  ip: string;
-  userAgent: string;
 }
 
 interface ForgotPasswordDto {
@@ -138,7 +134,7 @@ export class AuthServices {
     };
   }
 
-  async login({ email, password, ip, userAgent }: LoginDto) {
+  async login({ email, password }: LoginDto) {
     const user = await this.ctx.users.getUserContext({ email });
 
     if (!user) {
@@ -171,21 +167,12 @@ export class AuthServices {
       accessTokenConfig.sign
     );
 
-    const fingerprint = await genFingerprint(`${ip}-${userAgent}`);
-
     const refreshToken = signToken<RefreshTokenPayload>(
       {
         id: user.id,
-        fingerprint,
       },
       refreshTokenConfig.sign
     );
-
-    // JSON_BUILD_OBJECT by default serialize date to string
-    user.settings.created_at = new Date(user.settings.created_at);
-    user.settings.updated_at = user.settings.updated_at
-      ? new Date(user.settings.updated_at)
-      : null;
 
     const { password_hash, ...withOutPassword } = user;
 
@@ -193,10 +180,11 @@ export class AuthServices {
       user: withOutPassword,
       accessToken,
       refreshToken,
+      expiresIn: 10 * 60 * 1000,
     };
   }
 
-  async refresh({ refreshToken, ip, userAgent }: RefreshDto) {
+  async refresh({ refreshToken }: RefreshDto) {
     const payload = verifyToken<RefreshTokenPayload>(
       refreshToken,
       refreshTokenConfig.verify
@@ -209,22 +197,12 @@ export class AuthServices {
       );
     }
 
-    const isMatch = await compareHashes(
-      payload.fingerprint,
-      `${ip}-${userAgent}`
-    );
-
-    if (!isMatch) {
-      this.logger.warn("Fingerprint does'nt match", `${ip}-${userAgent}`);
-      throw new UnauthorizedException(
-        "Invalid refresh token",
-        ErrorCode.AUTH_INVALID_TOKEN
-      );
-    }
-
     const user = await this.ctx.users.findById(payload.id);
 
     if (!user) {
+      this.logger.warn(`Attempt refresh tokens with invalid token payload`, {
+        payload,
+      });
       throw new UnauthorizedException(
         "Invalid refresh token",
         ErrorCode.AUTH_INVALID_TOKEN
@@ -240,7 +218,6 @@ export class AuthServices {
     const newRefreshToken = signToken<RefreshTokenPayload>(
       {
         id: user.id,
-        fingerprint: payload.fingerprint,
       },
       refreshTokenConfig.sign
     );
@@ -248,6 +225,7 @@ export class AuthServices {
     return {
       accessToken,
       newRefreshToken,
+      expiresIn: 10 * 60 * 1000,
     };
   }
 

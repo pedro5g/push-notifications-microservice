@@ -17,6 +17,7 @@ import { ApiKeyModule } from "./modules/api-key.module";
 import { AuthModule } from "./modules/auth.module";
 import { ProjectModule } from "./modules/project.module";
 import { HTTP_STATUS } from "./utils/constraints";
+import { UserModule } from "./modules/user.module";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = fastify().withTypeProvider<ZodTypeProvider>();
@@ -110,6 +111,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   );
 
   await app.register(AuthModule.bind, { prefix: env.API_PREFIX });
+  await app.register(UserModule.bind, { prefix: env.API_PREFIX });
   await app.register(ProjectModule.bind, { prefix: env.API_PREFIX });
   await app.register(ApiKeyModule.bind, { prefix: env.API_PREFIX });
 

@@ -11,11 +11,11 @@ export class SendResetPasswordEmailJob {
     const emailService = new EmailServices();
     const { email, name, resetToken, expiredAt } = job.data;
 
-    const resetUrl = `${
-      env.UI_URL
-    }/reset-password?token=${resetToken}&expires=${new Date(
-      expiredAt
-    ).getTime()}`;
+    const resetUrl = `${env.UI_URL}/reset-password?token=${encodeURIComponent(
+      resetToken
+    )}&expires=${encodeURIComponent(
+      new Date(expiredAt).getTime()
+    )}&target=${encodeURIComponent(email)}`;
     const template = EmailTemplates.passwordReset({
       name,
       resetUrl,

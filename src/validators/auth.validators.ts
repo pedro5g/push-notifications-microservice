@@ -29,6 +29,7 @@ export const loginBodySchema = z.object({
 export const loginResponseSchema = {
   [HTTP_STATUS.OK]: z.object({
     ok: z.boolean(),
+    message: z.string(),
     user: z.object({
       id: z.string(),
       name: z.string(),
@@ -39,10 +40,10 @@ export const loginResponseSchema = {
         "suspended",
         "pending_verification",
       ]),
-      email_verified_at: z.date().nullable(),
-      last_login_at: z.date().nullable(),
-      created_at: z.date(),
-      updated_at: z.date().nullable(),
+      email_verified_at: z.coerce.date().nullable(),
+      last_login_at: z.coerce.date().nullable(),
+      created_at: z.coerce.date(),
+      updated_at: z.coerce.date().nullable(),
       settings: z.object({
         id: z.string(),
         language: z.string(),
@@ -52,12 +53,13 @@ export const loginResponseSchema = {
         max_projects: z.number(),
         max_web_hooks_per_project: z.number(),
         max_notifications_per_month: z.number(),
-        created_at: z.date(),
-        updated_at: z.date().nullable(),
+        created_at: z.coerce.date(),
+        updated_at: z.coerce.date().nullable(),
       }),
     }),
     accessToken: z.jwt(),
     refreshToken: z.jwt(),
+    expiresIn: z.coerce.number(),
   }),
   [HTTP_STATUS.BAD_REQUEST]: z.object({
     ok: z.boolean(),
@@ -87,6 +89,7 @@ export const refreshResponseSchema = {
     z.object({
       accessToken: z.jwt(),
       refreshToken: z.jwt(),
+      expiresIn: z.coerce.number(),
     })
   ),
   [HTTP_STATUS.UNAUTHORIZED]: badRequestSchema,

@@ -1,12 +1,11 @@
-import jwt from 'jsonwebtoken';
-import { env } from '@/config/env';
+import jwt from "jsonwebtoken";
+import { env } from "@/config/env";
 
 export type AccessTokenPayload = {
   id: string;
 };
 export type RefreshTokenPayload = {
   id: string;
-  fingerprint: string;
 };
 
 export type SingOptionsWithPrivateKey = jwt.SignOptions & {
@@ -21,16 +20,16 @@ export const accessTokenConfig: {
   verify: VerifyOptionsWithPublicKey;
 } = {
   sign: {
-    issuer: 'Pedro5g corp',
-    subject: 'email@email.com',
-    audience: 'http://pedro5gcorp.in',
+    issuer: "Pedro5g corp",
+    subject: "email@email.com",
+    audience: "http://pedro5gcorp.in",
     expiresIn: env.JWT_ACCESS_EXPIRES_IN,
-    algorithm: 'RS256',
-    privateKey: Buffer.from(env.JWT_ACCESS_PRIVATE_KEY, 'base64'),
+    algorithm: "RS256",
+    privateKey: Buffer.from(env.JWT_ACCESS_PRIVATE_KEY, "base64"),
   },
   verify: {
-    algorithms: ['RS256'],
-    publicKey: Buffer.from(env.JWT_ACCESS_PUBLIC_KEY, 'base64'),
+    algorithms: ["RS256"],
+    publicKey: Buffer.from(env.JWT_ACCESS_PUBLIC_KEY, "base64"),
   },
 };
 
@@ -39,16 +38,16 @@ export const refreshTokenConfig: {
   verify: VerifyOptionsWithPublicKey;
 } = {
   sign: {
-    issuer: 'Pedro5g corp',
-    subject: 'email@email.com',
-    audience: 'http://pedro5gcorp.in',
+    issuer: "Pedro5g corp",
+    subject: "email@email.com",
+    audience: "http://pedro5gcorp.in",
     expiresIn: env.JWT_REFRESH_EXPIRES_IN,
-    algorithm: 'RS256',
-    privateKey: Buffer.from(env.JWT_REFRESH_PRIVATE_KEY, 'base64'),
+    algorithm: "RS256",
+    privateKey: Buffer.from(env.JWT_REFRESH_PRIVATE_KEY, "base64"),
   },
   verify: {
-    algorithms: ['RS256'],
-    publicKey: Buffer.from(env.JWT_REFRESH_PUBLIC_KEY, 'base64'),
+    algorithms: ["RS256"],
+    publicKey: Buffer.from(env.JWT_REFRESH_PUBLIC_KEY, "base64"),
   },
 };
 

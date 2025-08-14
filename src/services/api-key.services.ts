@@ -1,8 +1,8 @@
-import type { ApiKeyStatus } from '@/models/api-key.model';
-import type { ContextRepository } from '@/repositories/context.repository';
-import { genApiKey, toHash } from '@/utils/crypt';
-import { ConflictException, NotFoundException } from '@/utils/exceptions';
-import { Logger } from '@/utils/logger';
+import type { ApiKeyStatus } from "@/models/api-key.model";
+import type { ContextRepository } from "@/repositories/context.repository";
+import { genApiKey, toHash } from "@/utils/crypt";
+import { ConflictException, NotFoundException } from "@/utils/exceptions";
+import { Logger } from "@/utils/logger";
 
 interface CreateApiKeyDto {
   projectId: string;
@@ -40,11 +40,11 @@ export class ApiKeyServices {
     const project = await this.ctx.projects.findById(projectId);
 
     if (!project) {
-      this.logger.warn('Project not found, invalid project id', { projectId });
-      throw new NotFoundException('Project not found, invalid project id');
+      this.logger.warn("Project not found, invalid project id", { projectId });
+      throw new NotFoundException("Project not found, invalid project id");
     }
 
-    if (project.status !== 'active') {
+    if (project.status !== "active") {
       this.logger.warn(
         `[NotAllowedAction] Attempt to create an api key in an ${project.status} project`
       );
@@ -63,7 +63,7 @@ export class ApiKeyServices {
       key_preview: apiKeyPreview,
       key_hash: keyHash,
       project_id: projectId,
-      expires_at: expiresAt,
+      expires_at: expiresAt?.toISOString(),
     });
 
     return {
@@ -90,15 +90,15 @@ export class ApiKeyServices {
     const apiKey = await this.ctx.apiKeys.findById(apiKeyId);
 
     if (!apiKey) {
-      this.logger.warn('ApiKey not found, invalid api key id', { apiKey });
-      throw new NotFoundException('Api key not found, invalid api key id');
+      this.logger.warn("ApiKey not found, invalid api key id", { apiKey });
+      throw new NotFoundException("Api key not found, invalid api key id");
     }
 
     await this.ctx.apiKeys.update({
       id: apiKeyId,
       name,
       status,
-      expires_at: expiresAt,
+      expires_at: expiresAt?.toISOString(),
       permissions,
     });
   }
@@ -112,8 +112,8 @@ export class ApiKeyServices {
     const apiKey = await this.ctx.apiKeys.findById(apiKeyId);
 
     if (!apiKey) {
-      this.logger.warn('ApiKey not found, invalid api key id', { apiKey });
-      throw new NotFoundException('Api key not found, invalid api key id');
+      this.logger.warn("ApiKey not found, invalid api key id", { apiKey });
+      throw new NotFoundException("Api key not found, invalid api key id");
     }
 
     return { apiKey };
