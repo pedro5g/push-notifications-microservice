@@ -180,7 +180,7 @@ export class AuthServices {
       user: withOutPassword,
       accessToken,
       refreshToken,
-      expiresIn: 10 * 60 * 1000,
+      expiresIn: 10 * 60,
     };
   }
 
@@ -225,7 +225,7 @@ export class AuthServices {
     return {
       accessToken,
       newRefreshToken,
-      expiresIn: 10 * 60 * 1000,
+      expiresIn: 10 * 60,
     };
   }
 
