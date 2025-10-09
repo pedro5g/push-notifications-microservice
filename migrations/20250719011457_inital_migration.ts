@@ -1,6 +1,5 @@
 import type { Knex } from "knex";
 
-
 export async function up(knex: Knex): Promise<void> {
   await knex.raw(`
     CREATE TYPE USER_STATUS AS ENUM('active', 'inactive', 'suspended', 'pending_verification');
@@ -108,9 +107,8 @@ export async function up(knex: Knex): Promise<void> {
 
     CREATE TRIGGER update_api_keys_updated_at BEFORE UPDATE ON api_keys 
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-  `)
+  `);
 }
-
 
 export async function down(knex: Knex): Promise<void> {
   await knex.raw(`
@@ -122,6 +120,5 @@ export async function down(knex: Knex): Promise<void> {
     DROP TYPE IF EXISTS USER_STATUS CASCADE;
     DROP TYPE IF EXISTS PROJECT_STATUS CASCADE;
     DROP TYPE IF EXISTS API_KEY_STATUS CASCADE;
-  `)
+  `);
 }
-

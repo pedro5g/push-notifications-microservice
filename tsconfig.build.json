@@ -17,6 +17,7 @@
     "**/*.spec.js",
     "**/tests/**/*",
     "**/test/**/*",
+    "**/tests/**/*",
     "**/__tests__/**/*",
     "**/__mocks__/**/*",
     "vitest.config.ts"
